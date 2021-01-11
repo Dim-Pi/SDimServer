@@ -40,8 +40,12 @@ def apend(sef,loc,mo):
 
 
 class Image(model):
+    class Meta :
+        verbose_name='تصویر'
+        verbose_name_plural='تصویرها'
 
-    loc    = dstr(primary_key=True,default='m0') 
+        
+    loc    = dchar('شناسه',primary_key=True,default='example: math mosallasat 1 Q1',max_length=120) 
     image  = dbyte()
 
 
@@ -66,6 +70,9 @@ class Image(model):
             f.write(File)
             f.close()
             return fileloc
+    
+    def __str__(self):
+        return self.loc
 
 
 
@@ -91,6 +98,11 @@ class Lesson(model):
 
 
 class User(model):
+    class Meta :
+        verbose_name='فرهنگی'
+        verbose_name_plural = 'فرهنگی'
+
+
     Sname           =    dchar ('نام',max_length=220)
     Bname           =    dchar ('نام خانوادگی',max_length=220)
     stuid           =    dchar ('کد کلاسی',max_length= 18  ,primary_key=True)
@@ -109,8 +121,8 @@ class User(model):
 
 class door (model):
     class Meta:
-        verbose_name='نقش'
-        verbose_name_plural='نقش ها'
+        verbose_name='دور'
+        verbose_name_plural='دور ها'
 
 
     door       =  dclass('Dor',on_delete=resume)
@@ -131,6 +143,11 @@ class door (model):
 
 
 class Role(model):
+    class Meta:
+        verbose_name='نقش'
+        verbose_name_plural=' نقش ها '
+
+
     name = dchar('نام مسئولیت',max_length=150,primary_key=True)
 
     def __str__(self):
@@ -143,6 +160,11 @@ class Role(model):
 
 
 class Dor(model):
+
+    class Meta:
+        verbose_name='فراسنج'
+        verbose_name_plural='فراسنج ها'
+
 
     lesson     =   dclass('Lesson',on_delete=protect)
     admin      =   dclass('user',on_delete=protect)
@@ -161,6 +183,11 @@ class Dor(model):
 
 
 class Question(model):
+
+    class Meta:
+        verbose_name = 'سوال'
+        verbose_name_plural = 'سوال ها'
+
     name     =   dchar(max_length=60,primary_key=True,default='Ques')
     image    =   dclass('Image',on_delete=resume)
     text     =   dstr()
