@@ -15,6 +15,7 @@ ddati    =  models.DateTimeField
 resume   =  models.CASCADE
 dimage   =  models.BinaryField
 dont     =  models.DO_NOTHING
+dbyte    =  models.BinaryField
 from Damasanj.library import FilesConnect as Fldb
 from os  import  mkdir 
 from sys import  argv
@@ -40,16 +41,17 @@ def apend(sef,loc,mo):
 
 class Image(model):
 
-    loc  = dstr(primary_key=True,default='m0') 
-
+    loc    = dstr(primary_key=True,default='m0') 
+    image  = dbyte()
 
 
     def insert (self,loc):
         db = Fldb()
-        cow = db['damaimage']
+        cow = db['Damasanj_image']
         with open(loc ,'rb') as fin :
             f = Binary(fin.read())
-            cow.insert ({'loc':self.loc,'image':f}) 
+            cow.insert ({'loc':self.loc,'image':f})
+            self.image = f
             return self
 
     
@@ -57,7 +59,7 @@ class Image(model):
 
     def imageloc (self):
         db = Fldb()
-        cow = db['damaimage']
+        cow = db['Damasanj_image']
         File = cow.find_one({'loc':self.loc})
         fileloc = '%s\\%s.jpg'%(location,self.loc)
         with open(fileloc , 'wb+') as f :
@@ -83,7 +85,7 @@ class Lesson(model):
 
     def __str__ (self):
         return self.name
-    
+
 
 
 
@@ -99,7 +101,7 @@ class User(model):
 
     def __str__ (self):
         return "%s  %s"%(self.Sname,self.Bname)
-    
+
 
 
 
