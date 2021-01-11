@@ -10,6 +10,8 @@ ddict    =  HStoreField
 dlist    =  ArrayField
 protect  =  models.PROTECT
 dtime    =  models.TimeField
+ddate    =  models.DateField
+ddati    =  models.DateTimeField
 resume   =  models.CASCADE
 dimage   =  models.BinaryField
 dont     =  models.DO_NOTHING
@@ -68,9 +70,15 @@ class Image(model):
 
 class Lesson(model):
 
-    dadmin   =  dclass('user',on_delete=dont)
-    name     =  dchar(max_length=20,primary_key=True)
-    topics   =  dlist(dchar(max_length=100))
+    class Meta :
+        verbose_name='درس'
+        verbose_name_plural='درس ها'
+        
+
+
+    dadmin   =  dclass('user',on_delete=dont,verbose_name='سرگروه')
+    name     =  dchar('نام درس',max_length=20,primary_key=True)
+    topics   =  dlist(dchar(max_length=100),verbose_name='موضوعات')
 
 
     def __str__ (self):
@@ -81,13 +89,13 @@ class Lesson(model):
 
 
 class User(model):
-    Sname           =    dchar (max_length=220)
-    Bname           =    dchar (max_length=220)
-    stuid           =    dchar (max_length= 18  ,primary_key=True)
-    role            =    dclass('Role',on_delete=dont,default=None)
-    Sid             =    dchar (max_length=225 ,default=None)
-    model           =    dchar (max_length=  6 ,default=None)
-    mode            =    dchar (max_length= 25 ,default=None)
+    Sname           =    dchar ('نام',max_length=220)
+    Bname           =    dchar ('نام خانوادگی',max_length=220)
+    stuid           =    dchar ('کد کلاسی',max_length= 18  ,primary_key=True)
+    role            =    dclass('Role',on_delete=dont,default=None,verbose_name='نقش')
+    Sid             =    dchar ('id سروش',max_length=225 ,default=None)
+    model           =    dchar (max_length=  6 ,default='0')
+    mode            =    dchar (max_length= 25 ,default='0')
 
     def __str__ (self):
         return "%s  %s"%(self.Sname,self.Bname)
@@ -98,7 +106,12 @@ class User(model):
 
 
 class door (model):
-    door       =  dclass('Door',on_delete=resume)
+    class Meta:
+        verbose_name='نقش'
+        verbose_name_plural='نقش ها'
+
+
+    door       =  dclass('Dor',on_delete=resume)
     body       =  dclass('User',on_delete=resume)
     Progress   =  dint()
     def __str__(self):
@@ -116,7 +129,7 @@ class door (model):
 
 
 class Role(model):
-    name = dstr(primary_key=True)
+    name = dchar('نام مسئولیت',max_length=150,primary_key=True)
 
     def __str__(self):
         return self.name
@@ -131,8 +144,8 @@ class Dor(model):
 
     lesson     =   dclass('Lesson',on_delete=protect)
     admin      =   dclass('user',on_delete=protect)
-    strart     =   dtime()
-    finish     =   dtime()
+    strart     =   ddati()
+    finish     =   ddati()
     topic      =   dlist(dstr())
     qtion      =   ddict()
     toool      =   dint()

@@ -93,7 +93,7 @@ mysql = {
 
 mongodb = {
     'ENGINE': 'djongo',
-    'NAME':'mongodb',
+    'NAME':'SDimServer',
 }
 
 
