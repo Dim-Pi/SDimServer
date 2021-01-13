@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "Damasanj.apps.DamasanjConfig"
+    "Damasanj.apps.DamasanjConfig",
+    "Sending.apps.SendingConfig",
 ]
 
 MIDDLEWARE = [
@@ -133,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'fa-ir'
 
-TIME_ZONE = 'asia/tehran'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
