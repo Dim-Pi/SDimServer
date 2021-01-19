@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "Damasanj.apps.DamasanjConfig",
-    "Sending.apps.SendingConfig",
+    "Port.apps.PortConfig",
 ]
 
 MIDDLEWARE = [
