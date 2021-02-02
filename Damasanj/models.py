@@ -1,37 +1,64 @@
-from sys import path
-from django.contrib.postgres.fields import HStoreField , ArrayField 
-from django.db import models
-from django.http import HttpResponse as Re 
-from json import dumps ,loads
-from hashlib import sha256
-model    =  models.Model
-dint     =  models.IntegerField
-dstr     =  models.TextField
-dchar    =  models.CharField
-dboo     =  models.BooleanField
-dclass   =  models.ForeignKey
-ddict    =  HStoreField
-dlist    =  ArrayField
-dtime    =  models.TimeField
-ddate    =  models.DateField
-ddati    =  models.DateTimeField
-dbyte    =  models.BinaryField
-dimage   =  models.BinaryField
-resume   =  models.CASCADE
-protect  =  models.PROTECT
-dont     =  models.DO_NOTHING
-from Damasanj.library import FilesConnect as Fldb
-from Damasanj.library import fos ,musub ,mongo ,brand
-from Port.send import dama
-from Damasanj.apps import DamasanjConfig
-from os  import  mkdir 
-from sys import  argv
-import base64
-import bson
-from bson.binary import Binary
-slash = fos()
-location = slash.join(argv[0].split(slash)[:-1])
-Aid = DamasanjConfig.Aid
+try:
+    from sys import maxsize, path
+    from django.contrib.postgres.fields import HStoreField , ArrayField
+    from django.core import exceptions 
+    from django.db import models
+    from django.http import HttpResponse as Re 
+    from json import dumps ,loads
+    from hashlib import sha256
+    model    =  models.Model
+    dint     =  models.IntegerField
+    dstr     =  models.TextField
+    dchar    =  models.CharField
+    dboo     =  models.BooleanField
+    dclass   =  models.ForeignKey
+    ddict    =  HStoreField
+    dlist    =  ArrayField
+    dtime    =  models.TimeField
+    ddate    =  models.DateField
+    ddati    =  models.DateTimeField
+    dbyte    =  models.BinaryField
+    dimage   =  models.BinaryField
+    resume   =  models.CASCADE
+    protect  =  models.PROTECT
+    dont     =  models.DO_NOTHING
+
+    try:
+        from SDimServer.Damasanj.library import FilesConnect as Fldb
+        from SDimServer.Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
+        from SDimServer.Port.send import dama
+        from SDimServer.Damasanj.apps import DamasanjConfig
+    except:
+        from Damasanj.library import FilesConnect as Fldb
+        from Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
+        from Port.send import dama
+        from Damasanj.apps import DamasanjConfig
+
+    from random import randint
+    from os  import  mkdir 
+    from sys import  argv
+    import base64
+    import bson
+    from bson.binary import Binary
+    slash = fos()
+    location = slash.join(argv[0].split(slash)[:-1])
+    Aid = DamasanjConfig.Aid
+except:
+    exit()
+
+
+
+
+def givefun(fun):
+    global FeedFuncs
+    FeedFuncs = fun
+
+
+
+
+
+
+
 
 
 
@@ -44,6 +71,11 @@ def apend(sef,loc,mo):
         w = e
     sef.append(w)
     return sef
+
+
+
+
+
 
 
 class Image(model):
@@ -60,14 +92,12 @@ class Image(model):
 
 
     def insert (self,loc):
-        db          =   Fldb()
-        cow         =   db['Damasanj_image']
-        
+       
 
         with open(loc ,'rb') as fin :
             f = Binary(fin.read())
-            cow.insert ({'loc':self.loc,'image':f})
             self.image = f
+            self.save()
             return self
 
     
@@ -89,17 +119,57 @@ class Image(model):
 
 
 
+class Option(model):
+    name    = dchar ('نام اصلی',max_length=8,primary_key=True,default='stu')
+    Fname   = dstr  ('نام فرعی',default=' بررسی و شرکت در فراسنج ها')
+
+    def __str__ (self):
+        return self.name
+
+    def Save(self):
+        self.save()
+        return self
+    
+    def sync(self):
+        return self
+
+
+
+
+
 class Role(model):
     class Meta:
         verbose_name='نقش'
         verbose_name_plural=' نقش ها '
 
 
-    name = dchar('نام مسئولیت',max_length=150,primary_key=True)
-    
+    name            =  dchar('نام مسئولیت',max_length=150,primary_key=True)
+    Fname           =  dchar('نام فارسی',max_length=150,default=None)
+    options         =  dchar('دسترسی',max_length=1,default='e')
+    optionsave      =  dstr (default='e')
+
 
     def __str__(self):
-        return self.name
+        return str(self.Fname)
+
+
+    def Save(self):
+        e = []
+        for q in self.options:
+            e.append (q.name)
+        self.optionsave = jDump(e)
+        self.options = ' '
+        self.save()
+        self.sync()       
+        return self
+
+
+    def sync(self):
+        self.options = []
+        for q in loads(self.optionsave):
+            self.options.append(Option.objects.get(name=q))
+         
+        return self
 
 
 
@@ -113,13 +183,13 @@ class Lesson(model):
     class Meta :
         verbose_name='درس'
         verbose_name_plural='درس ها'
-        
+
 
 
     dadmin   =  dclass('User',on_delete=dont,verbose_name='سرگروه',default=None)
     name     =  dchar('نام درس',max_length=20)
     Ename    =  dchar('نام لاتین',max_length=20,primary_key=True)
-    topic    =  dstr(default='')                #alaki
+    topic    =  dstr(default='')                #alaki (json.list)
     topics   =  dstr(default=None)              #for_save
 
 
@@ -130,8 +200,17 @@ class Lesson(model):
     def Save(self):
         self.topics = dumps(self.topic,separators=(',', ':'))
         self.topic = ''
+
+        try:
+            Role.objects.get (name='admin.%s' %self.Ename).name
+        except:
+            Role(name='admin.%s' %self.Ename).Save()
+
         self.save()
         self.sync()
+
+        return self
+
 
     def sync(self):
         self.topic = loads(self.topics)
@@ -142,20 +221,27 @@ class Lesson(model):
 
 
 
+
+
 class sekey(model):
 
-    xkey = dbyte()
+    ykey = dbyte()
 
     def create (self):
-        e = randint(100,10000000000)
-        self.xkey = bytes(str(e),'utf-8')
-         
-        return bytes(sha256(self.xkey).hexdigest(),'utf-8')
+        e = brand()
+        x = bytes(str(e),'utf-8')
+        self.ykey = bytes(sha256(x).hexdigest(),'utf-8')
+        self.Save()
+        return x
 
-    def sign (self,pas):
-        if type(pas) == str :
-            pas = bytes(pas,'utf-8')
-        return bytes(sha256(self.xkey).hexdigest(),'utf-8') == pas 
+    def sign (self,x):
+        if type(x) == str :
+            x = bytes(x,'utf-8')
+        return bytes(sha256(x).hexdigest(),'utf-8') == self.ykey
+
+    def Save (self):
+        self.save()
+        return self
 
 
 
@@ -181,14 +267,20 @@ class User(model):
     role            =    dclass ('Role',on_delete=dont ,default=None ,verbose_name='نقش')
     Sid             =    dstr   ('id سروش' ,primary_key=True,default='')
     node            =    dchar  (max_length=  20 ,default='0')
-    mode            =    dclass ('Feedback',on_delete=resume,default=None)
+    mode            =    dclass ('Feedback',on_delete=dont,default=None)
+    mode2           =    dchar  (max_length=10,default='0')
+    lmods           =    dstr   ('ماد قبلی',default='')    #for_save
+    lmod            =    dchar  (max_length=1,default='')   #alaki
+    nmod            =    dchar  (max_length=1,default='0')  #alahi
+    nmods           =    dstr   (default='')                #for_save
     lastmsg         =    dclass ('MSG',on_delete=dont,default=None)
     lkeyb           =    dstr   (default='')                #alaki
     lkeybs          =    dstr   (default=None)              #for_save
     do              =    dboo   (default=True)
     signkey         =    dclass ('sekey',on_delete=dont,default=None)
     sign            =    dboo   (default=False)
-    spas            =    dbyte  (default=None)
+    sign2           =    dboo   (default=False)
+    
 
 
 
@@ -207,6 +299,13 @@ class User(model):
     def Save(self):
         self.lkeybs = dumps(self.lkeyb,separators=(',', ':'))
         self.lkeyb = ''
+        self.nmods = jDump(self.nmod)
+        self.nmod  = '0'
+        try:
+            self.lmods = self.lmod.name
+        except:
+            self.lmods = ''
+        self.lmod = ''
         self.save()
         self.sync()
         return self
@@ -215,6 +314,11 @@ class User(model):
 
 
     def sync(self):
+        try:
+            self.lmod = Feedback.objects.filter(name=self.lmods)
+        except :
+            self.lmod = ''
+        self.nmod = loads(self.nmods)
         self.lkeyb = loads(self.lkeybs)
     
 
@@ -238,7 +342,7 @@ class User(model):
     def send (self,data):
         if type(data['keyboard']) == str:
             del(data['keyboard'])
-        dama.send(data)
+        dama.send(data,str(self))
 
 
 
@@ -268,13 +372,22 @@ class User(model):
 
         self.mode  = w
         self.node  = w.name
+        self.nmod = self.mode.bmods
         self.do = True
 
 
 
 
     def jan(self,lmd):
-        pass
+        janlist = List([
+           'زرشک','چی شده؟','چی میگی؟','بیا برو حال ندارم','بادمجون','گلابی','.....'
+       ])
+
+         
+        mg = MSG.new(body=janlist.randl(),keyb=self.lkeyb,Type='TEXT').Save()
+        self.send_msg (mg)
+
+
 
 
 
@@ -286,8 +399,10 @@ class User(model):
 
     def startkey (self):
         self.signkey = sekey()
-        self.spas = self.signkey.create()
-        return  self.spas
+        x = self.signkey.create()
+        self.Save()
+        return  x.decode('utf-8')
+
 
 
     def signin   (self,key=None):
@@ -308,27 +423,41 @@ class User(model):
             if self.lastmsg.body[0] != '/':
                 nm = 'main'
             elif self.lastmsg.body[:2] == '//' :
-                nm = self.lastmsg.body[1:]
+                nm = self.lastmsg.body[1:].split('.')[0]
         except:
             nm = 'main'
         lmd = self.mode
+        self.lmod = lmd
 
         self.sync()
         self.mode.sync()
 
-        try :
-            self.sode ( Feedback.objects.get(name=self.mode.bmods[nm]) )
-        except :
-            self.sode ( Feedback.objects.get(name=self.mode.bmods['main']) )
+        if type(self.nmod) == dict:
+            ddic = self.nmod
+        else:
+            ddic = self.mode.bmods
 
+        
+
+        try :
+            self.sode ( Feedback.objects.get(name=ddic[nm]) )
+        except :
+            try:
+                self.sode ( Feedback.objects.get(name=ddic['main']) )
+            except:
+                pass
+        self.nmod = self.mode.bmods
 
 
         if self.node[:2] == '//' :
         
             self.Fdo (lmd)
             self.sode(lmd)
+            self.Save()
+            return False
         
         self.Save()
+        return True
 
 
 
@@ -340,13 +469,17 @@ class User(model):
         
         fl = {
             '//jan':self.jan ,
-            '//again':self.again
+            '//again':self.again,
+            '//dont':lambda x : None
         }
 
         try:
+            self.do = False
             fl[F] (lmd)
+            
         except:
             pass
+
 
 
     def Dowithoutsave (self,w,keyb=False):
@@ -358,16 +491,44 @@ class User(model):
                 self.send_msg(q)
                 if keyb :
                     self.lkeyb = w.msg.keyb
-        
+
+
+    def insertmsg (self,msg):
+        try:
+            self.dellast()
+            self.lastmsg = msg
+            return True
+        except :
+            return False
+
+
+
+    def dellast(self):
+        try:
+            self.lastmsg.delete()
+        except:
+            pass
+
 
 
     def Do (self,w=None):
+
+
         if self.do :
             if w == None :
                 w = self.mode
 
             w.sync()
-            for q0 in w.msg :
+
+            if w.TYPE == 'dynamic':
+                ms0 ,md0 = w.do (self)
+                self.nmod = md0
+                msgs = ms0
+            else:
+                msgs = w.msg
+                
+            
+            for q0 in msgs :
                 try:
                     q = w.msg[q0]
                 except:
@@ -389,19 +550,37 @@ class User(model):
 
 
 
+def idname (Sid):
+    try:
+        return str(User.objects.get(Sid=Sid))
+    except:
+        return 'NEW'
+
+
+
+
+
+
+
+
 class Admin(model):
     Sid = dstr(primary_key=True)
 
     def send(self,data):
-        dama.send(data)
+        if data['keyboard'] == None or type(data['keyboard']) == str:
+            del(data['keyboard'])
+        dama.send(data,'admin')
 
     def send_msg(self,fd):
+
+        fd.sync()
 
         for ms0 in fd.msg :
             try :
                 ms =  fd.msg[ms0]
             except :
                 ms = ms0
+            ms.sync()
             if ms.Type.lower() == 'text' :
                 data = {'body':ms.body,'keyboard':ms.keyb,'type':ms.Type,'to':self.Sid}
 
@@ -412,6 +591,7 @@ class Admin(model):
         return self
 
     
+
 
 
 
@@ -436,14 +616,15 @@ def DoAdmin (w,keyb=False):
 
 
 
+
 for q in DamasanjConfig.Adid :
     Admin (Sid=q).Save()
 
 
 
-
 def gadmin ():
     return User.objects.get (Sid=Aid)
+
 
     
 def UIDs ():
@@ -452,6 +633,7 @@ def UIDs ():
         li.append(q.Sid)
 
     return li
+
 
 
 
@@ -484,9 +666,6 @@ class Question(model):
 
     def __str__(self):
         return "%s: %s" %(str(self.lesson),self.text)
-
-
-
 
 
 
@@ -649,13 +828,14 @@ class MSG(model):
     keyb        =  dstr  (default='')
     rid         =  dstr  (primary_key=True,default='0')
     Format      =  dchar ('نوع',max_length=10,choices=[('input','ورودی'),('output','خروجی')],default='output')
+    CFormat     =  dchar ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس'),('ot','سمت کاربر')])
 
 
 
     def __str__ (self):
         return self.body
 
-    def new (body='',Type='TEXT',keyb=None,Sid=None,time=None,File=None,Format='output'):
+    def new (body='',Type='TEXT',keyb=None,Sid=None,time=None,File=None,Format='output',CFormat='in'):
         i = MSG()
         i.body = body
         i.Type = Type
@@ -665,19 +845,20 @@ class MSG(model):
         i.File = File
         i.Format = Format
         i.keysave = dumps(i.keyb,separators=(',', ':'))
+        i.CFormat = CFormat
         try:
-            MSG.objects.get(rid = i.CreateID()).time
-            return MSG.objects.get(rid = i.CreateID())
+            MSG.objects.get(rid = i.CreateID()).delete()
         except:
-            return i.Save()
+            pass
 
+        return i.Save()
 
 
     def CreateID(self):
         if self.Format == 'output':
             st = '051  ' + str(self.body) + '  ' + str(self.keysave) + '  ' + str(self.File)  + '  86'  
         else:
-            st = brand()
+            st = str(brand())
         return sha256(bytes(st,'utf-8')).hexdigest()
 
 
@@ -707,32 +888,43 @@ class MSG(model):
 
 
 
+
 class Feedback (model):
     class Meta:
         verbose_name="بازخورد"
         verbose_name_plural="بازخورد ها"
 
-    TYPE   =  dchar('نوع',max_length=15,choices=[('عادی','nodef'),('غیر عادی','ondef')],default='nodef')
-    name   =  dchar('نام',max_length=25,primary_key=True)
-    msgid  =  dstr (default=None)              #for_save
-    bmodsa =  dstr (default=None)              #for_save
-    msg    =  dstr ()
-    bmods  =  dstr ()
-    
+    TYPE        =  dchar('نوع',max_length=15,choices=[('دینامیک','dynamic'),('استاتیک','static')],default='static')
+    name        =  dchar('نام',max_length=25,primary_key=True)
+    msgid       =  dstr (default=None)              #for_save
+    bmodsa      =  dstr (default=None)              #for_save
+    F           =  dchar(max_length=100,default=None)
+    msg         =  dstr ()
+    bmods       =  dstr ()
+    CFormat     =  dchar ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس')])
+
+
+
     def Save(self):
         self.bmodsa = dumps(self.bmods,separators=(',', ':'))
         lis = list()
         for q0 in self.msg:
-            q = self.msg[q0]
+            try :
+                q = self.msg[q0]
+            except:
+                q = q0
             lis.append(str(q.rid))
         self.msgid  = dumps(lis,separators=(',', ':'))
         self.msg = ''
         self.bmods = ''
+ 
         self.save()
         self.sync()
         return self
-    
-    
+
+
+
+
     def sync(self):
         self.bmods = loads(self.bmodsa)
         li = loads(self.msgid)
@@ -742,7 +934,36 @@ class Feedback (model):
         self.msg = lis
 
 
+    
+    def newD(name='' ,TYPE='dynamic' ,F=False):
+        
+        try:
+            rere = Feedback.objects.get(name=name)    
+        except:
+            rere = Feedback(name = name . TYPE=TYPE)
+        
+        if F:
+            rere.F = F
+        
+        return rere
 
 
+
+    def Fync(self ,F):
+        self.F = F
+        self.Save()
+
+
+    def do(self,us):
+        if self.TYPE == 'dynamic':
+            return FeedFuncs[self.F](us)
+
+
+
+    def idget(nam):
+        try :
+            return Feedback.objects.get(name=nam)
+        except exceptions as e:
+            return e
 
 

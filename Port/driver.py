@@ -9,18 +9,20 @@ from json import dumps
 HEADER = {'Content-Type': 'Application/json', 'Accept': 'Application/json'}
 to = d.Sid
 da = Client(to)
-
+    
 for msg in da.get_messages():
     if msg['type'].lower() == 'text':
         urls = 'http://127.0.0.1:8000/Damasanj/message/%s/%s/%s/%s/%s/'%(msg['type'],msg['from'],msg['body'],msg['time'],' ')
         
         e = 1
         sle = 0
-        while e == 1:
+        while e == 1   :
+            #break
             try:
                 post_data = dumps(msg, separators=(',', ':'))
-                r = post('http://127.0.0.1:8000/Damasanj/message/request/',post_data,headers=HEADER)
                 print ('http://127.0.0.1:8000/Damasanj/message/request/',msg)
+                r = post('http://127.0.0.1:8000/Damasanj/message/request/',post_data,headers=HEADER)
+                
                 sle = 0
                 
                 if r.status_code == 403 :

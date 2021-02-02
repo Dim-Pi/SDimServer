@@ -1,21 +1,32 @@
-import requests
-from Damasanj.models import Feedback, MSG
-from Damasanj.user import NewUser ,ucomplete
-from Damasanj.library import fos
-from Damasanj.models import UIDs ,User
 from django.views.decorators.csrf import csrf_exempt
 from json import loads
+
+try :
+    from SDimServer.Damasanj.models import Feedback, MSG
+    from SDimServer.Damasanj.scripts import NewUser ,ucomplete ,admin
+    from SDimServer.Damasanj.library import fos
+    from SDimServer.Damasanj.models import UIDs ,User ,idname
+except:
+    from Damasanj.models import Feedback, MSG
+    from Damasanj.scripts import NewUser ,ucomplete ,admin
+    from Damasanj.library import fos
+    from Damasanj.models import UIDs ,User ,idname
+
+
+
 slash = fos()
 
 
+
+
 def mdriver (request , id ,msg ,time ,File ,ype):
-    return driver ( id ,msg ,time ,File ,ype)
+    return driver ( id ,msg ,time ,File ,ype ,'url')
 
 
 @csrf_exempt
 def redriver (request):
     r = loads(request.body)
-    return driver ( r.get('from') ,r.get('body') ,r.get('time') ,r.get('File',' ') ,r.get('type'))
+    return driver ( r.get('from') ,r.get('body') ,r.get('time') ,r.get('File',' ') ,r.get('type') ,'request')
 
 
 
@@ -36,8 +47,9 @@ def redriver (request):
 
 
 
-def driver(   id ,msg ,time ,File ,ype):
-    print (ype,id,msg,time,File,'\n\n\n\n')
+def driver(   id ,msg ,time ,File ,ype ,ret):
+    print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(ret,ype,idname(id),msg))
+    
     if File == ' ':
         File = None 
 
@@ -49,12 +61,23 @@ def driver(   id ,msg ,time ,File ,ype):
 
 
         it = User.objects.get(Sid=id)
-        it.lastmsg = MSG.new(body=msg,time=time,Type=ype,File=File,Format='input').Save()
-        it.dodo()
-        it.Save()
+        it.insertmsg ( MSG.new(body=msg,time=time,Type=ype,File=File,Format='input',CFormat='ot').Save())
+        res = it.dodo()
+        
+        case = it.mode.name
+
 
         if it.mode.name[:5] == 'start' or it.mode.name[:4] == 'sign':
-            ucomplete(it)
+            if res :
+                ucomplete(it)
+        elif case[:3] == 'adm':
+            if res :
+                admin(it)
 
 
-    return it.Do()
+
+
+
+    rere = it.Do()
+
+    return rere

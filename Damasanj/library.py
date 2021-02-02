@@ -46,3 +46,14 @@ def musub (tex,dic):
 
 
 
+def jDump (js):
+    from json import dumps
+    return dumps(js,separators=(',', ':'))
+
+
+
+
+class List (list):
+    def randl (self):
+        from random import randint
+        return self[randint(0,len(self)-1)]
