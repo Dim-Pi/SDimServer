@@ -9,14 +9,16 @@ from json import dumps
 HEADER = {'Content-Type': 'Application/json', 'Accept': 'Application/json'}
 to = d.Sid
 da = Client(to)
-    
+da.RETRY_DELAY = 2
+
 for msg in da.get_messages():
     if msg['type'].lower() == 'text':
         urls = 'http://127.0.0.1:8000/Damasanj/message/%s/%s/%s/%s/%s/'%(msg['type'],msg['from'],msg['body'],msg['time'],' ')
         
         e = 1
         sle = 0
-        while e == 1   :
+        tt = 0
+        while e == 1 and tt <= 10  :
             #break
             try:
                 post_data = dumps(msg, separators=(',', ':'))
@@ -29,6 +31,7 @@ for msg in da.get_messages():
                     bytes(b'','utf-8')
                 print ('to good\n')
                 e = 0
+                tt = 0
             except:
                 print ('not good\n')
                 try:
@@ -37,10 +40,12 @@ for msg in da.get_messages():
                     print('to do')
                     e = 0
                     sle = 0
+                    tt = 0
                 except:
                     sle += 0.25
                     print ('noooooo!')
                     sleep (sle)
+                    tt += 1
                     continue
                     
 

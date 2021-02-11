@@ -1,5 +1,7 @@
+# بازم خودتی :=)
+
 from django.contrib import admin
-from Damasanj.models import Lesson , Dar ,Question ,User ,Image ,Role ,door ,Feedback
+from Damasanj.models import Lesson , Dor ,Question ,User ,Image ,Role ,door ,Feedback
 
 al = [Feedback]
 

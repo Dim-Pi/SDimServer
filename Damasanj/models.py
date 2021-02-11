@@ -149,6 +149,7 @@ class Role(model):
     optionsave      =  dstr (default='e')
 
 
+
     def __str__(self):
         return str(self.Fname)
 
@@ -168,6 +169,9 @@ class Role(model):
         self.options = []
         for q in loads(self.optionsave):
             self.options.append(Option.objects.get(name=q))
+        self.optionsn = []
+        for q in self.options :
+            self.optionsn.append(q.name)
          
         return self
 
@@ -319,7 +323,7 @@ class User(model):
         except :
             self.lmod = ''
         self.nmod = loads(self.nmods)
-        self.lkeyb = loads(self.lkeybs)
+        self.lkeyb = self.mode.keyb()
     
 
 
@@ -380,7 +384,7 @@ class User(model):
 
     def jan(self,lmd):
         janlist = List([
-           'زرشک','چی شده؟','چی میگی؟','بیا برو حال ندارم','بادمجون','گلابی','.....'
+           'زرشک','چی شده؟','چی میگی؟','بیا برو حال ندارم','بادمجون','گلابی','.....','شمبلیله','dfhali!!!','فعلا حوصله خدمات دهی به شما را نداریم \n با تشکر'
        ])
 
          
@@ -435,7 +439,7 @@ class User(model):
         if type(self.nmod) == dict:
             ddic = self.nmod
         else:
-            ddic = self.mode.bmods
+            ddic = self.mode.nmd(self)
 
         
 
@@ -448,10 +452,18 @@ class User(model):
                 pass
         self.nmod = self.mode.bmods
 
+        boofun = self.node[:2] == '//' or ddic[nm][:2] == '//' 
 
-        if self.node[:2] == '//' :
+        nfu = '//jan'
+
+        if boofun :
+            
+            if self.node[:2] == '//':
+                nfu = self.node
+            elif ddic[nm][:2] == '//':
+                nfu = ddic[nm]
         
-            self.Fdo (lmd)
+            self.Fdo (lmd,F=nfu)
             self.sode(lmd)
             self.Save()
             return False
@@ -940,7 +952,7 @@ class Feedback (model):
         try:
             rere = Feedback.objects.get(name=name)    
         except:
-            rere = Feedback(name = name . TYPE=TYPE)
+            rere = Feedback(name = name , TYPE=TYPE)
         
         if F:
             rere.F = F
@@ -954,6 +966,17 @@ class Feedback (model):
         self.Save()
 
 
+    def keyb(self):
+        
+        self.sync()
+        if self.TYPE == 'static':
+            msgs = self.msg
+        else:
+            msgs = self.do[0]
+
+        return msgs[len(msgs)-1].keyb
+    
+    
     def do(self,us):
         if self.TYPE == 'dynamic':
             return FeedFuncs[self.F](us)
@@ -967,3 +990,8 @@ class Feedback (model):
             return e
 
 
+    def nmd(self,use):
+        if self.TYPE == 'dynamic':
+            return self.do(use) [1]
+        elif self.TYPE == 'static':
+            return self.bmods

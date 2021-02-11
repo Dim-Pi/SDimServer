@@ -161,10 +161,14 @@ class Self :
     
     def Fadriver(it):
         li = {'stu'    :{'msg':None  ,'key':  {'text':'شرکت در فزاسنج','command':'//stu'}               ,'mod': {'key':'/stu'    ,'co':'frn_starter'}},
-            'dmn.mth'  :{'msg':None  ,'key':  {'text':'مدیریت بخش ریاضی','command':'//dmn.mth'}         ,'mod': {'key':'/adm.mth','co':'adm_starter.mth'}}
+            'adm.mth'  :{'msg':None  ,'key':  {'text':'مدیریت بخش ریاضی','command':'//adm.mth'}         ,'mod': {'key':'/adm.mth','co':'adm_starter.mth'}}
         }
-        #                                                                                                                               _________________
-        md = it.role.options
+        #                                                                                                                                _________________
+        try:
+            it.role.sync()       
+        except:
+            pass                                                                                                                    
+        md = it.role.optionsn
         mods = {'main':'//jan'}
         nm = {0:MSG.new(Type='TEXT',body='به به خب حالا چیکار کنیم؟').Save()}
         key0 = [[]]
@@ -248,8 +252,8 @@ def keyv (key,fname,e):
 
 
 funs = {
-    'Fadriver':Self.Fadriver,
-    'Fadm_starter0':admviews.Fadm_starter0
+    'Fadriver':       Self.Fadriver                      ,
+    'Fadm_starter0':  admviews.Fadm_starter0             ,
 }
 
 givefun(funs)
