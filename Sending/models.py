@@ -37,10 +37,14 @@ class node (model):
     id     =  dint(primary_key=True)
     tocken =  dstr()
 
+    def __init__ (id,tocken):
+        self.id = id
+        self.tocken = tocken
+
     def new(id,tocken) :
 
         
-        with open('Sending%s%s.py'%(slash,id),'w+') as F:
+        with open('Sending%snode%s.py'%(slash,id),'w+') as F:
         
             data = '''
 from sys import path
@@ -99,6 +103,7 @@ while True:
             F.write(data)
             F.close()
             sleep(0.1)
+            Node =  node()
     
 
 

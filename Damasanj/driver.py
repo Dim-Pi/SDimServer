@@ -25,8 +25,10 @@ def mdriver (request , id ,msg ,time ,File ,ype):
 
 @csrf_exempt
 def redriver (request):
-    r = loads(request.body)
-    return driver ( r.get('from') ,r.get('body') ,r.get('time') ,r.get('File',' ') ,r.get('type') ,'request')
+    r0 = loads(request.body)
+    r = r0 ['massage']
+    r['ret'] = 'request'
+    return driver ( r0['massenger'],**r )
 
 
 
@@ -47,7 +49,7 @@ def redriver (request):
 
 
 
-def driver(   id ,msg ,time ,File ,ype ,ret):
+def driver( massenger ,ret = 'request'  ,id='' ,msg='' ,time=0 ,File=' ' ,ype='' ):
     scr = script.start()
     print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(ret,ype,idname(id),msg))
     

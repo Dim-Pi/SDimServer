@@ -21,7 +21,8 @@ for msg in da.get_messages():
         while e == 1 and tt <= 10  :
             #break
             try :
-                post_data = dumps(msg, separators=(',', ':'))
+                fmsg = {'massenger':'soroush+',"massage":msg}
+                post_data = dumps(fmsg, separators=(',', ':'))
                 print ('http://127.0.0.1:8000/Damasanj/message/request/',msg)
                 r = post('http://127.0.0.1:8000/Damasanj/message/request/',post_data,headers=HEADER)
                 
