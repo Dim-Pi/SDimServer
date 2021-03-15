@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "Damasanj.apps.DamasanjConfig",
     "Port.apps.PortConfig",
     "Sending.apps.SendingConfig",
-    "Recieving.apps.RecievingConfig"
+    "Receiving.apps.ReceivingConfig",
 ]
 
 MIDDLEWARE = [
@@ -94,21 +94,27 @@ mysql = {
         'HOST':  'localhost',
 }
 
+
+
+
 mongodb = {
     'ENGINE': 'djongo',
     'NAME':'SDimServer',
 }
 
+from platform import system
 
 
-
-
+osdatabase = {
+    'Windows': mongodb,
+    'Linux'  : sqlite3
+}
 
 
 
 
 DATABASES = {
-    'default': mongodb
+    'default': osdatabase[system()]
 }
 
 

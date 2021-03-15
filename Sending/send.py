@@ -1,4 +1,5 @@
-from Port.client import Client
+from sys import path
+from Sending.client import Client
 from Damasanj.apps import DamasanjConfig as Dc 
 token = Dc.Sid
 bama = Client(token)

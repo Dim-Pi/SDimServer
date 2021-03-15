@@ -1,8 +1,8 @@
 from django.apps import AppConfig
 
 
-class PortConfig (AppConfig):
-    name = "Port"
+class ReceivingConfig (AppConfig):
+    name = "Receiving"
 
 
 class Damasanj : 

@@ -1,6 +1,17 @@
+
+
+def apend(sef,loc,mo):
+    w = mo
+    e = None
+    for q in range (loc,len(sef)):
+        e  =  sef [q]
+        sef[q]  = w
+        w = e
+    sef.append(w)
+    return sef
+
 try:
     from sys import maxsize, path
-    from django.contrib.postgres.fields import HStoreField , ArrayField
     from django.core import exceptions 
     from django.db import models
     from django.http import HttpResponse as Re 
@@ -12,8 +23,6 @@ try:
     dchar    =  models.CharField
     dboo     =  models.BooleanField
     dclass   =  models.ForeignKey
-    ddict    =  HStoreField
-    dlist    =  ArrayField
     dtime    =  models.TimeField
     ddate    =  models.DateField
     ddati    =  models.DateTimeField
@@ -61,22 +70,45 @@ def givefun(fun):
 
 
 
+def _soroush_plus_send(name,**info):
+    dama.send(**info,name)
 
 
 
 
 
+global _sender
+_sender = {
+    "_soroush+_sender" : _soroush_plus_send
+}
+class Massenger(model):
+    name   = dstr(primary_key=True)
+    sender = dstr()
 
 
-def apend(sef,loc,mo):
-    w = mo
-    e = None
-    for q in range (loc,len(sef)):
-        e  =  sef [q]
-        sef[q]  = w
-        w = e
-    sef.append(w)
-    return sef
+
+    def send(self,name,**info):
+        try: sender = _sender [self.sender]
+        except: sender = __import__ (self.sender)
+
+        return sender(name,**info)
+
+
+    def SELF (self):
+        return self
+
+
+
+    def Save(self):
+        self.save()
+        return self
+
+
+
+    def add (nm,**info):
+        try: return Massenger.objects.get(name=nm).SELF()
+        except: return Massenger(name=nm,**info).Save() 
+        
 
 
 
@@ -297,6 +329,8 @@ class User(model):
     signkey         =    dclass ('sekey',on_delete=dont,default=None)
     sign            =    dboo   (default=False)
     sign2           =    dboo   (default=False)
+    massenger       =    dclass (Massenger,on_delete=dont,default=None)
+
     
 
 
@@ -308,7 +342,7 @@ class User(model):
 
 
     def __str__ (self):
-        return "%s  %s"%(self.Sname,self.Bname)
+        return "%s %s"%(self.Sname,self.Bname)
 
 
 
@@ -360,7 +394,7 @@ class User(model):
     def send (self,data):
         if type(data['keyboard']) == str:
             del(data['keyboard'])
-        dama.send(data,str(self))
+        self.massenger.send(str(self),data)
 
 
 
@@ -1082,7 +1116,11 @@ class script(model):
 
 
 
-init(Lesson=Lesson)
+init(
+    Lesson     =  Lesson     ,
+    User       =  User       ,
+    Massenger  =  Massenger  ,
+    )
 
 
 
