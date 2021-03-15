@@ -72,14 +72,14 @@ class start:
     
 
     start01 = Feedback(
-        name='start01',bmods={'main':'start02'},TYPE='ondef'
+        name='start01',bmods={'main':'start02'},TYPE='static'
         ,msg={ 
             0: MSG.new( body='حالا اسمتم بگو متنّبه شیم  ( اسم غیر خانوادگی )',Type='TEXT').Save()
         }
     ).Save()
 
     start02 = Feedback(
-        name='start02',bmods={'main':'start1'},TYPE='ondef'
+        name='start02',bmods={'main':'start1'},TYPE='static'
         ,msg={
             0: MSG.new( body="به به حالا اون یکی اسمتم بگو که دیگه خیلی خیلی متّنبه بشیم( اسم خانوادگی )",Type='TEXT').Save()
         }
@@ -160,14 +160,27 @@ def lsn(d):
 class Self :
     
     def Fadriver(it):
-        li = {'stu'    :{'msg':None  ,'key':  {'text':'شرکت در فزاسنج','command':'//stu'}               ,'mod': {'key':'/stu'    ,'co':'frn_starter'}},
-            'adm.mth'  :{'msg':None  ,'key':  {'text':'مدیریت بخش ریاضی','command':'//adm.mth'}         ,'mod': {'key':'/adm.mth','co':'adm_starter.mth'}}
+        li = {
+            'stu'    :{'msg':None  ,'key':  {'text':'شرکت در فزاسنج','command':'//stu'}               ,'mod': {'key':'/stu'    ,'co':'frn_starter'}}
         }
         #                                                                                                                                _________________
-        try:
-            it.role.sync()       
-        except:
-            pass                                                                                                                    
+        
+        for q in Lesson.objects.all():
+            li["adm.%s"%q.small_name] = {
+                'msg': None,
+                'key': {
+                            'text':  'مدیریت بخش %s'%q.name ,
+                            'command':   '//adm.%s'%q.small_name
+                            },
+                            'mod': {
+                                'key':'/adm.%s'%q.small_name,
+                                'co' :'adm_starter.%s'%q.mth
+                                }
+                        }
+        
+        try:it.role.sync()       
+        except:...
+
         md = it.role.optionsn
         mods = {'main':'//jan'}
         nm = {0:MSG.new(Type='TEXT',body='به به خب حالا چیکار کنیم؟').Save()}

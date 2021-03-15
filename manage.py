@@ -4,7 +4,7 @@ import os
 from sys import argv
 
 
-def main():
+def main(a):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SDimServer.settings')
     try:
         from django.core.management import execute_from_command_line
@@ -14,8 +14,8 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    execute_from_command_line(argv)
+    execute_from_command_line(a)
 
 
 if __name__ == '__main__':
-    main()
+    main(argv)

@@ -5,12 +5,12 @@ try :
     from SDimServer.Damasanj.models import Feedback, MSG
     from SDimServer.Damasanj.scripts import NewUser ,ucomplete ,admin
     from SDimServer.Damasanj.library import fos
-    from SDimServer.Damasanj.models import UIDs ,User ,idname
+    from SDimServer.Damasanj.models import UIDs ,User ,idname ,script
 except:
     from Damasanj.models import Feedback, MSG
     from Damasanj.scripts import NewUser ,ucomplete ,admin
     from Damasanj.library import fos
-    from Damasanj.models import UIDs ,User ,idname
+    from Damasanj.models import UIDs ,User ,idname ,script
 
 
 
@@ -48,13 +48,15 @@ def redriver (request):
 
 
 def driver(   id ,msg ,time ,File ,ype ,ret):
+    scr = script.start()
     print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(ret,ype,idname(id),msg))
     
     if File == ' ':
         File = None 
 
 
-    if id  not in  UIDs() :     
+    if id  not in  UIDs() : 
+        scr.co("start0")    
         it = NewUser(ype ,id ,msg ,time ,File)
     else:
 
@@ -63,6 +65,7 @@ def driver(   id ,msg ,time ,File ,ype ,ret):
         it = User.objects.get(Sid=id)
         it.insertmsg ( MSG.new(body=msg,time=time,Type=ype,File=File,Format='input',CFormat='ot').Save())
         res = it.dodo()
+        scr.co(it.mode)
         
         case = it.mode.name
 
@@ -79,5 +82,7 @@ def driver(   id ,msg ,time ,File ,ype ,ret):
 
 
     rere = it.Do()
+
+    print(scr.end())
 
     return rere

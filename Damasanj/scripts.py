@@ -99,17 +99,14 @@ def admin (it):
     it.do = True
     lmsg = it.lastmsg.body
     
-    try:
-        case = it.node.split('.')[0]    
-    except:
-        case = it.node.split('.')[0]
-    try:
-        coma = it.lastmsg.body.split('.')[1]
-    except:
-        coma = None
+    try:   case = it.node.split('.')[0]    
+    except:case = it.node.split('.')[0]
+    try:   coma = it.lastmsg.body.split('.')[1]
+    except:coma = None
 
     
-    B = lambda n : True if case == n else False
+    B = lambda n :  case == n 
+
 
     if B('adm_start0'):
         it.mode2 = coma

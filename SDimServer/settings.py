@@ -40,6 +40,8 @@ INSTALLED_APPS = [
 
     "Damasanj.apps.DamasanjConfig",
     "Port.apps.PortConfig",
+    "Sending.apps.SendingConfig",
+    "Recieving.apps.RecievingConfig"
 ]
 
 MIDDLEWARE = [

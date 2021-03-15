@@ -19,19 +19,24 @@ try:
     ddati    =  models.DateTimeField
     dbyte    =  models.BinaryField
     dimage   =  models.BinaryField
+    dfloat   =  models.FloatField
     resume   =  models.CASCADE
     protect  =  models.PROTECT
     dont     =  models.DO_NOTHING
 
-    try:
+    
+
+    try:   
         from SDimServer.Damasanj.library import FilesConnect as Fldb
         from SDimServer.Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
-        from SDimServer.Port.send import dama
+        from SDimServer.resiveing.send import dama
         from SDimServer.Damasanj.apps import DamasanjConfig
+        from SDimServer.Damasanj.init import main as init
     except:
         from Damasanj.library import FilesConnect as Fldb
         from Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
-        from Port.send import dama
+        from Sending.send import dama
+        from Damasanj.init import main as init
         from Damasanj.apps import DamasanjConfig
 
     from random import randint
@@ -44,6 +49,7 @@ try:
     location = slash.join(argv[0].split(slash)[:-1])
     Aid = DamasanjConfig.Aid
 except:
+    print('\ninstall packages!!!\n')
     exit()
 
 
@@ -190,15 +196,22 @@ class Lesson(model):
 
 
 
-    dadmin   =  dclass('User',on_delete=dont,verbose_name='سرگروه',default=None)
-    name     =  dchar('نام درس',max_length=20)
-    Ename    =  dchar('نام لاتین',max_length=20,primary_key=True)
-    topic    =  dstr(default='')                #alaki (json.list)
-    topics   =  dstr(default=None)              #for_save
+    dadmin        =  dclass('User',on_delete=dont,verbose_name='سرگروه',default=None)
+    name          =  dchar('نام درس',max_length=20)
+    Ename         =  dchar('نام لاتین',max_length=20,primary_key=True)
+    small_name    =  dstr('اسم مخفف',default='mth')
+    topic         =  dstr(default='')                #alaki (json.list)
+    topics        =  dstr(default=None)              #for_save
 
 
     def __str__ (self):
         return self.name
+
+    def add (nm,**info):
+        try:
+            try: return Lesson.objects.get(Ename=nm).Save()
+            except: return Lesson(Ename=nm,**info)
+        except: return False
 
 
     def Save(self):
@@ -322,6 +335,7 @@ class User(model):
             self.lmod = Feedback.objects.filter(name=self.lmods)
         except :
             self.lmod = ''
+        self.mode.sync()
         self.nmod = loads(self.nmods)
         self.lkeyb = self.mode.keyb()
     
@@ -373,11 +387,20 @@ class User(model):
 
 
     def sode (self,w):
+        if type(w)==str:
+            if len(w.split('.')) == 1: m = w
+            elif len(w.split('.')) == 2:
+                m=w.split('.')[0]
+                self.mode2 =  w.split('.')[1]
+            w = Feedback.objects.get(name=m)
+
+        else: w = w
 
         self.mode  = w
         self.node  = w.name
         self.nmod = self.mode.bmods
         self.do = True
+        self.Save()
 
 
 
@@ -418,6 +441,13 @@ class User(model):
         return self.signkey.sign(key)
         
 
+    def Back(self):
+        self.mode ,self.lmod = self.lmod ,self.mode
+        try:
+            self.Save()
+            return True
+        except: return False
+
 
 
     def dodo (self):
@@ -427,7 +457,10 @@ class User(model):
             if self.lastmsg.body[0] != '/':
                 nm = 'main'
             elif self.lastmsg.body[:2] == '//' :
-                nm = self.lastmsg.body[1:].split('.')[0]
+                if len(self.lastmsg.body[1:].split('.')) == 1: nm = self.lastmsg.body[1:].split('.')[0]
+                elif len(self.lastmsg.body[1:].split('.')) == 2: 
+                    nm = self.lastmsg.body[1:].split('.')[0]
+                    nm0 = self.lastmsg.body[1:]
         except:
             nm = 'main'
         lmd = self.mode
@@ -444,16 +477,18 @@ class User(model):
         
 
         try :
-            self.sode ( Feedback.objects.get(name=ddic[nm]) )
-        except :
+            try: self.sode ( Feedback.objects.get(name=ddic[nm]) )
+            except: self.sode (ddic[ nm0 ])
+        except:
             try:
                 self.sode ( Feedback.objects.get(name=ddic['main']) )
-            except:
-                pass
-        self.nmod = self.mode.bmods
+            except: ...
+                
+        self.mode.sync()
+        self.nmod = self.mode.get_next_modes()
 
-        boofun = self.node[:2] == '//' or ddic[nm][:2] == '//' 
-
+        try: boofun = self.node[:2] == '//' or ddic[nm][:2] == '//' 
+        except : boofun = False
         nfu = '//jan'
 
         if boofun :
@@ -507,8 +542,11 @@ class User(model):
 
     def insertmsg (self,msg):
         try:
+            global lus
+            lus = self
             self.dellast()
             self.lastmsg = msg
+             
             return True
         except :
             return False
@@ -542,7 +580,7 @@ class User(model):
             
             for q0 in msgs :
                 try:
-                    q = w.msg[q0]
+                    q = msgs[q0]
                 except:
                     q = q0
                 q.sync()
@@ -814,22 +852,6 @@ class Dor(model):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MSG(model):
     body        =  dstr  ()
     Type        =  dchar (max_length=20)
@@ -945,6 +967,10 @@ class Feedback (model):
             lis.append(MSG.objects.get(rid=q))
         self.msg = lis
 
+    def get_next_modes(self):
+        self.sync()
+        if self.TYPE == "static": return self.bmods
+        elif self.TYPE == "dynamic": return self.do(lus)[1]
 
     
     def newD(name='' ,TYPE='dynamic' ,F=False):
@@ -972,10 +998,9 @@ class Feedback (model):
         if self.TYPE == 'static':
             msgs = self.msg
         else:
-            msgs = self.do[0]
-
-        return msgs[len(msgs)-1].keyb
-    
+            msgs = self.do(lus)[0]
+        try: return msgs[len(msgs)-1].keyb
+        except: return []
     
     def do(self,us):
         if self.TYPE == 'dynamic':
@@ -995,3 +1020,72 @@ class Feedback (model):
             return self.do(use) [1]
         elif self.TYPE == 'static':
             return self.bmods
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from time import time
+class script(model):
+    mode = dclass('Feedback',on_delete=dont,default=None)
+    stime = dfloat(default=0)
+    etime = dfloat(default=0)
+    time  = dfloat(default=0)
+
+    def Save(self):
+        self.save()
+        return self
+
+    def start(mod=None):
+        n = script(stime=time())
+        if mod != None : n.co(mod)
+        return n.Save()
+
+    def co(self,mod):
+        if type(mod) == str : mod = Feedback.objects.get(name=mod)
+        self.mode = mod
+        return self.Save()
+    
+    def end(self):
+        self.etime = time()
+        self.time = self.etime - self.stime
+        self.Save()
+        return  "\n [[ did <%s> at '%s' ]] \n"%(self.mode.name,self.time)
+
+
+
+
+
+
+
+
+init(Lesson=Lesson)
+
+
+
+
+
+
