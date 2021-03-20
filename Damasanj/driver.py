@@ -10,7 +10,7 @@ except:
     from Damasanj.models import Feedback, MSG
     from Damasanj.scripts import NewUser ,ucomplete ,admin
     from Damasanj.library import fos
-    from Damasanj.models import UIDs ,User ,idname ,script
+    from Damasanj.models import UIDs ,User ,idname ,script ,Maseenger
 
 
 
@@ -51,6 +51,7 @@ def redriver (request):
 
 def driver( massenger ,ret = 'request'  ,id='' ,msg='' ,time=0 ,File=' ' ,ype='' ):
     scr = script.start()
+    mas = massenger.objects.get(name=massenger)
     print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(ret,ype,idname(id),msg))
     
     if File == ' ':
@@ -59,7 +60,7 @@ def driver( massenger ,ret = 'request'  ,id='' ,msg='' ,time=0 ,File=' ' ,ype=''
 
     if id  not in  UIDs() : 
         scr.co("start0")    
-        it = NewUser(ype ,id ,msg ,time ,File)
+        it = NewUser(ype ,id ,mas ,msg ,time ,File)
     else:
 
 

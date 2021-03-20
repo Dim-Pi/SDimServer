@@ -13,10 +13,10 @@ ig = Feedback.idget
 
 
 
-def NewUser(Type ,Sid ,msg ,time ,File):
+def NewUser(Type ,masen ,Sid ,msg ,time ,File):
     ms = MSG(body=msg,time=time,File=File,Type=Type,Sid=id)
     ms.Save()
-    it = User(Sid=Sid,lastmsg=ms,mode=start.start0)
+    it = User(Sid=Sid,massenger=masen,lastmsg=ms,mode=start.start0)
     it.Save()
     
     return it
