@@ -71,7 +71,7 @@ def givefun(fun):
 
 
 def _soroush_plus_send(name,**info):
-    dama.send(**info,name)
+    dama.send(name,**info)
 
 
 

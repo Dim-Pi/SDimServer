@@ -1,5 +1,9 @@
-from django.apps import AppConfig
 
+try: 
+    from django.apps import AppConfig
+except: 
+    print ('er\n')
+    class  AppConfig : ...
 
 class ReceivingConfig (AppConfig):
     name = "Receiving"

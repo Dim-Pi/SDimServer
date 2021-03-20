@@ -5,7 +5,7 @@ token = Dc.Sid
 bama = Client(token)
 
 class dama :
-    def send(data,rname):
+    def send(rname,**data):
         if data['type'].lower() == 'text':
         
             sendp(data['body'],rname,'TEXT')
