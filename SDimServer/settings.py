@@ -107,7 +107,7 @@ from platform import system
 
 osdatabase = {
     'Windows': mongodb,
-    'Linux'  : sqlite3
+    'Linux'  : mysql
 }
 
 
