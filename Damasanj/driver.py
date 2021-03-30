@@ -10,9 +10,12 @@ except:
     from Damasanj.models import Feedback, MSG
     from Damasanj.scripts import NewUser ,ucomplete ,admin
     from Damasanj.library import fos
-    from Damasanj.models import UIDs ,User ,idname ,script ,Maseenger
+    from Damasanj.models import UIDs ,User ,idname ,script ,Massenger
 
-
+class dict (dict):
+    def rename(self,f,n):
+        self[n] = self[f]
+        del(self[f])
 
 slash = fos()
 
@@ -26,8 +29,10 @@ def mdriver (request , id ,msg ,time ,File ,ype):
 @csrf_exempt
 def redriver (request):
     r0 = loads(request.body)
-    r = r0 ['massage']
+    r = dict(r0 ['massage'])
     r['ret'] = 'request'
+    r.rename('from','id')
+    r.rename('type','ype')
     return driver ( r0['massenger'],**r )
 
 
@@ -49,10 +54,11 @@ def redriver (request):
 
 
 
-def driver( massenger ,ret = 'request'  ,id='' ,msg='' ,time=0 ,File=' ' ,ype='' ):
+def driver( massenger ,ret = 'request'  ,id='' ,body='' ,time=0 ,File=' ' ,ype='' ):
+    msg = body
     scr = script.start()
-    mas = massenger.objects.get(name=massenger)
-    print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(ret,ype,idname(id),msg))
+    mas = Massenger._give(massenger)
+    print ("\n\n\n\n(recive %s)   %s < %s >>>  %s\n" %(massenger,ype,idname(id),msg))
     
     if File == ' ':
         File = None 

@@ -62,6 +62,12 @@ except:
     exit()
 
 
+class model2 :
+    def _try(self): return self
+
+
+
+
 
 
 def givefun(fun):
@@ -104,6 +110,8 @@ class Massenger(model):
         self.save()
         return self
 
+
+    def _give(*k,**key): return Massenger.add(*k,**key)
 
 
     def add (nm,**info):
@@ -162,21 +170,37 @@ class Option(model):
     name    = dchar ('نام اصلی',max_length=8,primary_key=True,default='stu')
     Fname   = dstr  ('نام فرعی',default=' بررسی و شرکت در فراسنج ها')
 
+
+
     def __str__ (self):
         return self.name
+
 
     def Save(self):
         self.save()
         return self
-    
+
+
     def sync(self):
         return self
 
 
+    def _try (self): 
+        return self
+
+
+    def _give (*name,**info):
+        try: info['name'] = name[0]
+        except:...
+        try: return Option.objects.get(**info)._try()
+        except: return Option(**info).Save()
 
 
 
-class Role(model):
+
+
+
+class Role(model,model2):
     class Meta:
         verbose_name='نقش'
         verbose_name_plural=' نقش ها '
@@ -195,8 +219,14 @@ class Role(model):
 
     def Save(self):
         e = []
-        for q in self.options:
-            e.append (q.name)
+        if self.options != 'e':
+            for q in self.options:
+                e.append (q.name)
+        else:
+            self.options = [Option._give('stu')]
+            for q in self.options:
+                e.append (q.name)
+
         self.optionsave = jDump(e)
         self.options = ' '
         self.save()
@@ -213,6 +243,14 @@ class Role(model):
             self.optionsn.append(q.name)
          
         return self
+
+
+    def _give(**info):
+        try: return Role.objects.get(**info)._try()
+        except: return Role(**info).Save()
+
+
+
 
 
 
@@ -243,7 +281,7 @@ class Lesson(model):
     def add (nm,**info):
         try:
             try: return Lesson.objects.get(Ename=nm).Save()
-            except: return Lesson(Ename=nm,**info)
+            except: return Lesson(Ename=nm,**info).Save()
         except: return False
 
 
@@ -254,7 +292,7 @@ class Lesson(model):
         try:
             Role.objects.get (name='admin.%s' %self.Ename).name
         except:
-            Role(name='admin.%s' %self.Ename).Save()
+            Role(name='admin.%s' %self.Ename,options=[Option._give('adm.%s'%self.small_name),Option._give('stu')]).Save()
 
         self.save()
         self.sync()
@@ -331,7 +369,7 @@ class User(model):
     sign            =    dboo   (default=False)
     sign2           =    dboo   (default=False)
     massenger       =    dclass (Massenger,on_delete=dont,default=None)
-
+    developing_dor  =    dclass ('Dor',on_delete=dont,default=None)
     
 
 
@@ -393,9 +431,12 @@ class User(model):
 
 
     def send (self,data):
-        if type(data['keyboard']) == str:
-            del(data['keyboard'])
-        self.massenger.send(str(self),data)
+        try:
+            if type(data['keyboard']) == str:
+                del(data['keyboard'])
+        except:
+            pass
+        self.massenger.send(str(self),**data)
 
 
 
@@ -649,12 +690,16 @@ def idname (Sid):
 
 
 class Admin(model):
-    Sid = dstr(primary_key=True)
+    Sid  = dstr  (primary_key=True)
+    Self = dclass(User,on_delete=resume)
+    
 
     def send(self,data):
         if data['keyboard'] == None or type(data['keyboard']) == str:
             del(data['keyboard'])
-        dama.send(data,'admin')
+        self.Self.send(data)
+
+
 
     def send_msg(self,fd):
 
@@ -667,19 +712,29 @@ class Admin(model):
                 ms = ms0
             ms.sync()
             if ms.Type.lower() == 'text' :
-                data = {'body':ms.body,'keyboard':ms.keyb,'type':ms.Type,'to':self.Sid}
+                data = {'body':ms.body,'keyboard':ms.keyb,'type':ms.Type,'to':self.Self.Sid}
 
             self.send (data)
     
+
+
+
     def Save (self):
         self.save()
         return self
 
     
+    def _try(self): return self
 
 
 
-
+    def _give(Sid):
+        
+        try:    u = User.objects.get(Sid=Sid)
+        except: return False
+        
+        try:    return Admin.objects.get(Self=u,Sid=Sid)._try()
+        except: return Admin(Self=u,Sid=Sid).Save()
 
 
 
@@ -701,9 +756,6 @@ def DoAdmin (w,keyb=False):
 
 
 
-
-for q in DamasanjConfig.Adid :
-    Admin (Sid=q).Save()
 
 
 
@@ -783,7 +835,7 @@ class door (model):
 
 
 
-class Dor(model):
+class Dor(model,model2):
 
     class Meta:
         verbose_name='فراسنج'
@@ -792,7 +844,7 @@ class Dor(model):
 
     lesson     =   dclass('Lesson',on_delete=protect)
     admin      =   dclass('user',on_delete=protect)
-    strart     =   ddati()
+    start      =   ddati()
     finish     =   ddati()
     topicsave  =   dstr (default=None)              #for_save
     topic      =   dstr (default='')                #alaki
@@ -825,7 +877,11 @@ class Dor(model):
         self.qtion = lis
         self.topic = loads(self.topicsave)
 
-
+    def _give_new_only (**info):
+        try: 
+            if Dor.objects.get(**info)._try(): return False
+        except:
+            return Dor(**info).Save()
 
 
 
@@ -1121,6 +1177,9 @@ init(
     Lesson     =  Lesson     ,
     User       =  User       ,
     Massenger  =  Massenger  ,
+    Admin      =  Admin      ,
+    Role       =  Role       ,
+    Option     =  Option     ,
     )
 
 

@@ -166,7 +166,7 @@ class Self :
         #                                                                                                                                _________________
         
         for q in Lesson.objects.all():
-            li["adm.%s"%q.small_name] = {
+            li["adm_%s"%q.small_name] = {
                 'msg': None,
                 'key': {
                             'text':  'مدیریت بخش %s'%q.name ,
@@ -174,7 +174,7 @@ class Self :
                             },
                             'mod': {
                                 'key':'/adm.%s'%q.small_name,
-                                'co' :'adm_starter.%s'%q.mth
+                                'co' :'adm_starter.%s'%q.small_name
                                 }
                         }
         
@@ -223,27 +223,53 @@ class admviews :
     
     def Fadm_starter0 (it):
     
-        mod = {'main':'//jan'}
+        mod = {'main':'//jan' ,'/add_Dor.%s'%it.mode2:'adm_add_dor0.%s'%it.mode2}
         if it.sign2 :
             ms = '''به پنل مدیریت خوش اومدی !!  حالا کجا بریم؟؟'''
         else:
             ms = '''معرفی میکنم اینجا پنل مدیریت دماسنجا..نه نه ببخشید فراسنجاست  خب حالا میتونی با یک خنده شیطانی هر کخی دلت بخواد بریزی!!! البته حواست باشه مدیر پایه ها نظارت میکنن!.......'''
             it.sign = True
         
-        Msg = {0:MSG.new(Type='TEXT', body=ms,keyb=[[{'text':'ایجاد فراسنج','command':'//add_Dor'}]]).Save()}
+        Msg = {0:MSG.new(Type='TEXT', body=ms,keyb=[[{'text':'ایجاد فراسنج','command':'//add_Dor.%s'%it.mode2}]]).Save()}
         
         
         return Msg , mod
     
     
-    adm_starter = Feedback.newD( name='adm_starter',TYPE='dynamic' ,F='Fadm_starter0' ).Save()
+    adm_starter = Feedback.newD( name='adm_starter',TYPE='dynamic' 
+                                ,F='Fadm_starter0' ).Save()
+
+
+    
+
+    adm_add_dor0 = Feedback( name='adm_add_dor0'  ,bmods={'main':'adm_add_dor1'}
+                        ,msg={
+                            0:MSG.new(Type='TEXT'
+                            ,body='''خب اولین وظیفه هر سرگره نسبت به فراسنجش انتخاب یک اسم نیکو برای اونه ببینم چه میکنی!'''
+                            ,keyb=[[{'command':'[auto]','text':'وللش حوصله داریا خودت یه چیزی انتخاب کن'}],[{'command':'[back]','text':'وللش منصرف شدم'}]]
+                            ).Save()
+                        }).Save()
     
 
 
 
+    adm_add_dor1 = Feedback( name='adm_add_dor1'  ,bmods={'main':'adm_add_dor2'}
+                            ,msg={
+                                0:MSG.new(Type='TEXT' ,body='''خب حالا مبحث فراسنجمون رو برام بفرست زحمتت!(اگه چندتا مبحثه بینشون "و" بزار)'''
+                                ,keyb=[[{'command':'[auto]','text':'فعلا عجله ای نیست باشه بعدا'}],[{'command':'[back]','text':' ولش کن کلا '}]]).Save()
+                            }).Save()
 
 
 
+
+    adm_add_dor2 = Feedback( name='adm_add_dor2'  ,bmods={'main':'adm_add_dor3'}
+        ,msg={
+        0:MSG.new(Type='TEXT',body='').Save()
+        }).Save()
+
+
+
+    adm_add_dor3 = Feedback.newD()  #last_end_______________________________
 
 
 
