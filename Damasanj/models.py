@@ -34,19 +34,19 @@ try:
     dont     =  models.DO_NOTHING
 
     
-
-    try:   
-        from SDimServer.Damasanj.library import FilesConnect as Fldb
-        from SDimServer.Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
-        from SDimServer.resiveing.send import dama
-        from SDimServer.Damasanj.apps import DamasanjConfig
-        from SDimServer.Damasanj.init import main as init
-    except:
+    try:
         from Damasanj.library import FilesConnect as Fldb
         from Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
         from Sending.send import dama
         from Damasanj.init import main as init
         from Damasanj.apps import DamasanjConfig
+    except:   
+        from SDimServer.Damasanj.library import FilesConnect as Fldb
+        from SDimServer.Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
+        from SDimServer.sending.send import dama
+        from SDimServer.Damasanj.apps import DamasanjConfig
+        from SDimServer.Damasanj.init import main as init
+
 
     from random import randint
     from os  import  mkdir 
@@ -60,6 +60,24 @@ try:
 except:
     print('\ninstall packages!!!\n')
     exit()
+
+
+
+
+
+
+
+
+
+
+class dict(dict):
+    def rename(self,c1,c2):
+        try:
+            self[c2] = self[c1]
+            del self[c1]
+            return self
+        except:
+            raise '\ndict on nown!\n\n'
 
 
 class model2 :
@@ -125,41 +143,37 @@ class Massenger(model):
 
 
 
-class Image(model):
+class SFile(model):
     class Meta :
         verbose_name='تصویر'
         verbose_name_plural='تصویرها'
 
-        
-    loc       =  dchar('شناسه',primary_key=True,default='example: math mosallasat 1 Q1',max_length=120) 
-    image     =  dbyte(default=None)
-    ftype     =  dchar('Type',max_length=7)
+    Sid       =  dstr (primary_key=True,default=None)
+    url       =  dstr(default='')
+    name      =  dstr (default='')
+    ftype     =  dchar('Type',max_length=7,default=None)
+    size      =  dint(default=1)
 
 
+    def new(**info):
+        info = dict(info)
+        if 'fileName'in list(info):
+            info.rename('fileName' ,'name')
+        if 'name' in list(info) and 'ftype' not in list(info):
+            info['ftype'] = info['name'].split('.')[-1] 
+
+        return SFile(**info).Save()
 
 
-    def insert (self,loc):
-       
+    def Save(self):
+        self.save()
+        self.sync()
+        return self
 
-        with open(loc ,'rb') as fin :
-            f = Binary(fin.read())
-            self.image = f
-            self.save()
-            return self
+    def sycn(self): ...
 
-    
-    
-
-    def imageloc (self):
-        File = self.image
-        fileloc = "%s%s%s%s" %(location ,slash ,self.loc ,self.ftype)
-        with open(fileloc , 'wb+') as f :
-            f.write(File)
-            f.close()
-            return fileloc
-    
     def __str__(self):
-        return self.loc
+        return self.name
 
 
 
@@ -445,9 +459,10 @@ class User(model):
 
     def send_msg (self,ms):
         rlis = {
-            '(<sname>)':self.Sname,
-            '(<bname>)':self.Bname,
-            '(<fname>)': "%s %s" %(self.Sname,self.Bname),
+            '(<sname>)'         :   self.Sname                  ,
+            '(<bname>)'         :   self.Bname                  ,
+            '(<fname>)'         :   self.Sname+' '+self.Bname   ,
+            '(<farasanj.name>)' :   self.developing_dor.name    ,
             
         }
 
@@ -790,29 +805,6 @@ def UIDs ():
 
 
 
-class Question(model):
-
-    class Meta:
-        verbose_name = 'سوال'
-        verbose_name_plural = 'سوال ها'
-
-    name     =   dchar(max_length=60,primary_key=True,default='Ques')
-    image    =   dclass('Image',on_delete=resume)
-    text     =   dstr()
-    lesson   =   dclass("Lesson",on_delete=protect)
-
-    def __str__(self):
-        return "%s: %s" %(str(self.lesson),self.text)
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -944,16 +936,16 @@ class Dor(model,model2):
 
 
 class MSG(model):
-    body        =  dstr  ()
-    Type        =  dchar (max_length=20)
-    keysave     =  dstr (default=None)              #for_save
-    Sid         =  dchar ('id سروش',max_length=225 ,default=None)
-    time        =  dint  (default=None) 
-    File        =  dstr  (default=None)
-    keyb        =  dstr  (default='')
-    rid         =  dstr  (primary_key=True,default='0')
-    Format      =  dchar ('نوع',max_length=10,choices=[('input','ورودی'),('output','خروجی')],default='output')
-    CFormat     =  dchar ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس'),('ot','سمت کاربر')])
+    body        =  dstr   ()
+    Type        =  dchar  (max_length=20)
+    keysave     =  dstr   (default=None)              #for_save
+    Sid         =  dchar  ('id سروش',max_length=225 ,default=None)
+    time        =  dint   (default=None) 
+    File        =  dclass ('SFile',on_delete=resume)
+    keyb        =  dstr   (default='')
+    rid         =  dstr   (primary_key=True,default='0')
+    Format      =  dchar  ('نوع',max_length=10,choices=[('input','ورودی'),('output','خروجی')],default='output')
+    CFormat     =  dchar  ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس'),('ot','سمت کاربر')])
 
 
 
@@ -1014,6 +1006,12 @@ class MSG(model):
 
 
 
+
+
+
+
+
+
 class Feedback (model):
     class Meta:
         verbose_name="بازخورد"
@@ -1058,6 +1056,10 @@ class Feedback (model):
             lis.append(MSG.objects.get(rid=q))
         self.msg = lis
 
+
+
+
+
     def get_next_modes(self):
         self.sync()
         if self.TYPE == "static": return self.bmods
@@ -1093,6 +1095,9 @@ class Feedback (model):
         try: return msgs[len(msgs)-1].keyb
         except: return []
     
+
+
+
     def do(self,us):
         if self.TYPE == 'dynamic':
             return FeedFuncs[self.F](us)
@@ -1165,6 +1170,74 @@ class script(model):
         self.time = self.etime - self.stime
         self.Save()
         return  "\n [[ did <%s> at '%s' ]] \n"%(self.mode.name,self.time)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Question(model):
+
+    class Meta:
+        verbose_name = 'سوال'
+        verbose_name_plural = 'سوال ها'
+
+    msg       =   dchar  (max_length=1 ,default='')
+    msg_save  =   dstr   (default='default' ,primary_key=True)
+    lesson    =   dclass ("Lesson" ,on_delete=protect)
+
+    def __str__(self):
+        return "%s: %s" %(str(self.lesson),self.text)
+
+
+
+    def Save (self):
+        msg_save = []
+        for q in self.msg :
+            msg_save.append(q.rid)
+        self.msg_save = jDump(msg_save)
+        self.msg = ''
+        self.save()
+        self.sync()
+        return self
+
+
+
+    def sync(self):
+        self.msg = []
+        for q in loads(self.msg_save):
+            self.msg.append(MSG.objects.get(rid=q))
+        self.msg_save = ''
+        return self
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

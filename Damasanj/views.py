@@ -262,15 +262,12 @@ class admviews :
 
 
 
-    adm_add_dor2 = Feedback( name='adm_add_dor2'  ,bmods={'main':'adm_add_dor3'}
-        ,msg={
-        0:MSG.new(Type='TEXT',body='').Save()
-        }).Save()
-
-
-
-    adm_add_dor3 = Feedback.newD()  #last_end_______________________________
-
+    adm_add_dor2 = Feedback( name='adm_add_dor2'  ,bmods={'main':'//jan','/True':'adm_learn_add_question0','/False':'adm_add_question0'}
+                            ,msg = {
+                                0: MSG(Type='TEXT' ,body="خیله خب حالا رسیدیم به بخش اصلی کار یعنی اضافه کردن سوال به <farasanj.name>"  ).Save() , #last_end_______________________________
+                                1: MSG(Type='TEXT' ,body=" خب اگه اینکارو بلدی که هیچی اگرنه از گزینه [بلد نیستم] استفاده کن!"
+                                ,keyb=[[{'command':'//False','text':'نه بابا بلدم!'}],[{'command':'//True','text':'[بلد نیستم]'}]] ).Save()
+                                 }).Save()
 
 
 
