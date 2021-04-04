@@ -1,4 +1,4 @@
-from Damasanj.models import Image
+
 from django.views.decorators.csrf import csrf_exempt
 from json import loads
 

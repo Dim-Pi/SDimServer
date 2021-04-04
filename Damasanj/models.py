@@ -112,6 +112,10 @@ class Massenger(model):
 
 
 
+    def __str__ (self):
+        return self.name
+
+
     def send(self,name,**info):
         try: sender = _sender [self.sender]
         except: sender = __import__ (self.sender)
@@ -936,16 +940,18 @@ class Dor(model,model2):
 
 
 class MSG(model):
-    body        =  dstr   ()
-    Type        =  dchar  (max_length=20)
-    keysave     =  dstr   (default=None)              #for_save
-    Sid         =  dchar  ('id سروش',max_length=225 ,default=None)
-    time        =  dint   (default=None) 
-    File        =  dclass ('SFile',on_delete=resume)
-    keyb        =  dstr   (default='')
-    rid         =  dstr   (primary_key=True,default='0')
-    Format      =  dchar  ('نوع',max_length=10,choices=[('input','ورودی'),('output','خروجی')],default='output')
-    CFormat     =  dchar  ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس'),('ot','سمت کاربر')])
+    messenger_name      =  dstr   (default='soroush+')
+    messenger           =  dstr   (default='alaki!!')
+    body                =  dstr   ()
+    Type                =  dchar  (max_length=20)
+    keysave             =  dstr   (default=None)              #for_save
+    Sid                 =  dchar  ('id سروش',max_length=225 ,default=None)
+    time                =  dint   (default=None) 
+    File                =  dclass ('SFile',on_delete=resume,default=None)
+    keyb                =  dstr   (default='')
+    rid                 =  dstr   (primary_key=True,default='0')
+    Format              =  dchar  ('نوع',max_length=10,choices=[('input','ورودی'),('output','خروجی')],default='output')
+    CFormat             =  dchar  ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس'),('ot','سمت کاربر')])
 
 
 
@@ -973,7 +979,12 @@ class MSG(model):
 
     def CreateID(self):
         if self.Format == 'output':
-            st = '051  ' + str(self.body) + '  ' + str(self.keysave) + '  ' + str(self.File)  + '  86'  
+            try:
+                _file_name = str(self.File)
+            except:
+                _file_name = 'None'
+            
+            st = '051  ' + str(self.body) + '  ' + str(self.keysave) + '  ' + str(_file_name)  + '  86'  
         else:
             st = str(brand())
         return sha256(bytes(st,'utf-8')).hexdigest()
@@ -983,6 +994,8 @@ class MSG(model):
     def Save(self):
         self.keysave = dumps(self.keyb,separators=(',', ':'))
         self.keyb = ''
+        self.messenger_name = str(self.messenger)
+        self.messenger = "<%s>" %self.messenger_name 
         if self.rid == '0':
             ri = self.CreateID()
             self.rid = ri
@@ -994,6 +1007,11 @@ class MSG(model):
 
     def sync(self):
         self.keyb = loads(self.keysave)
+        try:
+            self.messenger = Massenger.objects.get(name=self.messenger_name)
+        except:
+            pass
+        self.messenger_name = ''
 
 
 

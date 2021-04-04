@@ -300,9 +300,6 @@ class Client:
         if not self.token:
             raise ValueError('Invalid bot token')
 
-        if not save_file_path:
-            raise ValueError('Invalid path for saving file')
-
         if not file_url:
             raise ValueError('Invalid file url')
 

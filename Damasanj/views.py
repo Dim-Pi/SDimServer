@@ -63,7 +63,7 @@ class start:
         name='start0',bmods={'main':'//jan','/True':'start01'}
         ,msg={
             0: MSG.new(body='سلام به دماسنج خوش اومدی\nبرای شروع آماده ای ؟',Type='TEXT'
-                         ,keyb=[[{'text':'بزن بریم','command':'//True'}]]).Save()
+                         ,keyb=[[{'text':'بزن بریم','command':'//True'}]] ,File=None ).Save()
         
         }
         
