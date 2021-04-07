@@ -1,3 +1,6 @@
+from json import loads
+try: _settings = loads(open("SDimServer/settings.json",'r').read())
+except: _settings = loads(open("SDimServer/SDimServer/settings.json",'r').read())
 
 try: 
     from django.apps import AppConfig
@@ -10,7 +13,7 @@ class ReceivingConfig (AppConfig):
 
 
 class Damasanj : 
-    Sid  = "vQRiN3MmLC5blbDhwX7VWkdf-q2K9aK3zr_blt3t4liEooZqMu2PSFbZ3nfwprzpFJG1YH5hy5RgbJdKeIbxqqmqtrSF7H7LutUjvuF9Wc7TeoV6JypVu0Mgi5wkVUQVX6eVKgtSBHZ_kiVj"
+    Sid  = _settings['token']
     Aid  = "1UGgWYRWoxeafE2VPZTzUZ-YFgheBOWeypJSddLi5Fyo-_qUGl_eAKOF9Jc"
 
 

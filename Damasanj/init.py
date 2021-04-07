@@ -19,7 +19,7 @@ def main(**keys):
 
 
     _massenger_list={
-        "soroush+"   :  {'sender':'_soroush+_sender'}
+        "soroush+"   :  {'sender':'_soroush+_driver'}
     }
 
 

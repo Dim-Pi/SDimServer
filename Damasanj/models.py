@@ -1,5 +1,8 @@
 
 
+from hashlib import new
+
+
 def apend(sef,loc,mo):
     w = mo
     e = None
@@ -43,7 +46,7 @@ try:
     except:   
         from SDimServer.Damasanj.library import FilesConnect as Fldb
         from SDimServer.Damasanj.library import fos ,musub ,mongo ,brand ,List ,jDump
-        from SDimServer.sending.send import dama
+        from SDimServer.Sending.send import dama
         from SDimServer.Damasanj.apps import DamasanjConfig
         from SDimServer.Damasanj.init import main as init
 
@@ -53,6 +56,8 @@ try:
     from sys import  argv
     import base64
     import bson
+    import os
+    import json
     from bson.binary import Binary
     slash = fos()
     location = slash.join(argv[0].split(slash)[:-1])
@@ -94,19 +99,28 @@ def givefun(fun):
 
 
 
-def _soroush_plus_send(name,**info):
-    dama.send(name,**info)
+class _soroush_plus_driver:
+    
+    
+
+    def send(name,**info):
+        return dama.send(name,**info)
+
+    def upload_file(**info):
+        return dama.upload_file(**info)
+
+    def download_file (**info):
+        return dama.download_file(**info)
 
 
 
 
-
-
-global _sender
-_sender = {
-    "_soroush+_sender" : _soroush_plus_send
+global _drivers
+_drivers = {
+    "_soroush+_driver" : _soroush_plus_driver
 }
 class Massenger(model):
+
     name   = dstr(primary_key=True)
     sender = dstr()
 
@@ -115,12 +129,32 @@ class Massenger(model):
     def __str__ (self):
         return self.name
 
+    def _give_driver(self):
+        try: driver = _drivers [self.sender]
+        except: driver = __import__ (self.sender)
+        return driver
+
 
     def send(self,name,**info):
-        try: sender = _sender [self.sender]
-        except: sender = __import__ (self.sender)
 
-        return sender(name,**info)
+        driver = self._give_driver()
+
+        return driver.send(name,**info)
+
+
+
+
+    def upload_file (self,**info):
+        driver = self._give_driver()
+        return driver.upload_file(**info)
+
+
+
+
+    def download_file (self,**info):
+        driver = self._give_driver()
+        return driver.download_file(**info)
+
 
 
     def SELF (self):
@@ -151,12 +185,22 @@ class SFile(model):
     class Meta :
         verbose_name='تصویر'
         verbose_name_plural='تصویرها'
+    
+    
+    massengers_suport = dstr ()
+    
+    save_key        =  dstr  (primary_key=True,default='')
+    Sid_save        =  dstr  (default='')
+    Sid             =  dchar (default='',max_length=1)
+    url_save        =  dstr  (default='')
+    url             =  dchar (default='',max_length=1)
+    name            =  dstr  (default='')
+    ftype           =  dchar ('Type',max_length=7,default=None)
+    size            =  dint  (default=1)
+    is_download     =  dboo  (default=False)
+    _default_loc    =  dstr  (default='default')
 
-    Sid       =  dstr (primary_key=True,default=None)
-    url       =  dstr(default='')
-    name      =  dstr (default='')
-    ftype     =  dchar('Type',max_length=7,default=None)
-    size      =  dint(default=1)
+
 
 
     def new(**info):
@@ -169,15 +213,177 @@ class SFile(model):
         return SFile(**info).Save()
 
 
+
+
+
     def Save(self):
+
+        self.Sid_save = jDump(self.Sid)
+        self.url_save = jDump(self.url)
+        self.Sid = ''
+        self.url = ''
         self.save()
         self.sync()
         return self
 
-    def sycn(self): ...
+
+
+
+
+    def sycn(self): 
+        
+        self.Sid = loads(self.Sid_save)
+        self.url = loads(self.url_save)
+        self.Sid_save = ''
+        self.url_save = ''
+
+
+
+    def default_loc(self):
+        return os.getcwd() + fos() + 'SFiles'
+
+
+
+    def _get_loc(self):
+        
+        
+        if self._default_loc == 'default':
+            save_dir = self.default_loc()
+        else :
+            save_dir = self._default_loc
+        
+        save_loc = fos().join([save_dir , self.save_key + '___' + self.name])
+
+        if self.is_download :
+            return save_loc
+        
+        try: 
+            info = self.download(save_loc)
+        except:
+            raise 'download error'
+        
+        if info [0]:
+            raise 'download error' + '\n' + info[0]
+        else:
+            return info[1]
+
+
+
+
+
+    def upload(self,new_massenger):
+        if type(new_massenger) == str :
+            new_massenger = Massenger.objects.get(name = new_massenger)
+        
+        url = new_massenger.upload_file(file_path = self._get_loc())
+        self.Sid[str(new_massenger)] = url[0]
+        self.url[str(new_massenger)] = url[1]
+        self.massengers_suport += ',%s'%str(new_massenger)
+        self.Save()
+        return [False,url]
+
+
+
+
+
+
+
+    def upload_new(file_path:str,first_massenger='soroush+'):
+
+        try: F = open(file_path ,'r')
+        except: raise "don't found file"
+        
+
+        new_file        = SFile(ftype='ATTACHMENT')
+        new_file.size   = os.stat(file_path).st_size
+        new_file.Sid    = str(randint(10,1000000000000))
+        
+        try: massenger = Massenger._give(first_massenger)
+        except: raise "massenger not found"
+
+        url = massenger.upload_file(file_path=file_path)
+
+        if url[1]:
+            new_file.url = {str(massenger):url[0]}
+            new_file.Sid = {str(massenger):url[1]}
+        else:
+            raise "upload not good"
+        new_file.is_download = True
+        new_file.save_key = SFile._give_save_key(massenger,url[1],url[0])
+        new_file.name = file_path.split(fos())[-1]
+        os.rename(file_path,SFile.default_loc() + fos() + new_file.save_key + '___' + new_file.name)
+        
+
+        return new_file.Save()
+
+
+
+
+
+
+
+
+
+
+
+    
+    def download(self,download_path):
+        
+        try: massengers = json.loads ('[' + self.massengers_suport + ']')
+        except: return  ['massengers_list error',False]
+        
+        for q in massengers :
+            try:
+                masenger = Massenger.objects.get(name=q)
+                info = masenger.downloadfile(download_path=download_path,Sid=self.Sid[q],url=self.url[q])
+                if not info[0]:
+                    self.is_download = True
+                    self.Save()
+                    return [False,download_path]
+                else:
+                    bytes(b'','utf-8')
+            except:
+                continue
+        
+        return ['un nown error',False]
+
+
+
+
+
+
 
     def __str__(self):
         return self.name
+
+
+
+
+
+
+    def _give_save_key(massenger,sid,url):
+        return str(massenger) + '-' + sid + '-' + url
+
+
+
+
+
+
+    def _give(massenger,**info):
+        
+        
+        new_file_url = info['url']
+        new_file_Sid = info['Sid']
+        info['url'] = {str(massenger):new_file_url} 
+        info['Sid'] = {str(massenger):new_file_Sid}
+        info["save_key"] = SFile._give_save_key(massenger,new_file_Sid,new_file_url)
+        info['massengers_suport'] = str(massenger)
+        
+        
+        new_file = SFile(**info)
+
+        return new_file.Save()
+
 
 
 
@@ -212,6 +418,9 @@ class Option(model):
         except:...
         try: return Option.objects.get(**info)._try()
         except: return Option(**info).Save()
+
+
+
 
 
 
@@ -266,6 +475,8 @@ class Role(model,model2):
     def _give(**info):
         try: return Role.objects.get(**info)._try()
         except: return Role(**info).Save()
+
+
 
 
 
@@ -1031,6 +1242,9 @@ class MSG(model):
 
 
 class Feedback (model):
+
+
+
     class Meta:
         verbose_name="بازخورد"
         verbose_name_plural="بازخورد ها"
@@ -1043,6 +1257,9 @@ class Feedback (model):
     msg         =  dstr ()
     bmods       =  dstr ()
     CFormat     =  dchar ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس')])
+
+
+
 
 
 
@@ -1164,6 +1381,9 @@ class Feedback (model):
 
 from time import time
 class script(model):
+
+
+
     mode = dclass('Feedback',on_delete=dont,default=None)
     stime = dfloat(default=0)
     etime = dfloat(default=0)

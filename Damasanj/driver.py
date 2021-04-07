@@ -38,7 +38,7 @@ def redriver (request):
     r.rename('type','ype')
 
     if r['type'] == 'FILE':
-        r['FILE'] = SFile(**r['FILE'])
+        r['FILE'] = SFile._give(r0['massenger'],**r['FILE'])
 
     return driver ( r0['massenger'],**r )
     

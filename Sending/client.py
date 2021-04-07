@@ -83,7 +83,7 @@ class Client:
                         return [False, 'OK']
                     else:
                         if 'resultMessage' in response_json:
-                            return [response_json['resultMessage'], False]
+                            return [[response_json['resultMessage'],response], False]
                         else:
                             return ['Unknown Error', False]
                 else:
@@ -326,10 +326,18 @@ class Client:
 
     def upload_file(self, file_path):
         if not os.path.isfile(file_path):
-            raise ValueError('Invalid file')
+            if not str(type(file_path)) == "<class '_io.TextIOWrapper'>":
+                raise ValueError('Invalid file')
+            else:
+                Fi = file_path
+                
+        else:
+            Fi = open(file_path, 'rb')
+        
+        file = {'file': Fi}
 
         try:
-            file = {'file': open(file_path, 'rb')}
+
             response = requests.post(self.get_upload_file_url(), files=file)
 
             if response.status_code == 200:
