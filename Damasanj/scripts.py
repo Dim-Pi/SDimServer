@@ -122,7 +122,7 @@ def admin (it):
         else:
             if D('[auto]'):
                 l = Lesson.objects.get(small_name=it.mode2).name
-                _new_dor_name = l + str(len(list(Dor.objects.all())))
+                _new_dor_name = l + Dor.objects.count()
             else: _new_dor_name = lmsg 
 
             if not Dor._give_new_only(name=_new_dor_name):

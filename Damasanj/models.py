@@ -58,6 +58,7 @@ try:
     import bson
     import os
     import json
+    import re
     from bson.binary import Binary
     slash = fos()
     location = slash.join(argv[0].split(slash)[:-1])
@@ -390,6 +391,10 @@ class SFile(model):
 
 
 
+
+
+
+
 class Option(model):
     name    = dchar ('نام اصلی',max_length=8,primary_key=True,default='stu')
     Fname   = dstr  ('نام فرعی',default=' بررسی و شرکت در فراسنج ها')
@@ -586,6 +591,8 @@ class User(model):
     node            =    dchar  (max_length=  20 ,default='0')
     mode            =    dclass ('Feedback',on_delete=dont,default=None)
     mode2           =    dchar  (max_length=10,default='0')
+    mode_argv       =    dchar  ('argamons_fake',max_length=5,default='fake!')
+    mode_argv_save  =    dbyte  ('argamons',default=b'')
     lmods           =    dstr   ('ماد قبلی',default='')    #for_save
     lmod            =    dchar  (max_length=1,default='')   #alaki
     nmod            =    dchar  (max_length=1,default='0')  #alahi
@@ -625,6 +632,9 @@ class User(model):
         except:
             self.lmods = ''
         self.lmod = ''
+
+        self.mode_argv_save = jDump(self.mode_argv).encode()
+        self.mode_argv = 'fake!'
         self.save()
         self.sync()
         return self
@@ -640,7 +650,7 @@ class User(model):
         self.mode.sync()
         self.nmod = loads(self.nmods)
         self.lkeyb = self.mode.keyb()
-    
+        self.mode_argv = json.loads(self.mode_argv_save.decode())
 
 
 
@@ -684,6 +694,11 @@ class User(model):
 
         if ms.Type.lower() == 'text' :
             data = {'body':ms.body,'keyboard':ms.keyb,'type':ms.Type,'to':self.Sid}
+        elif ms.Type.lower() == 'file' :
+            data = ...
+
+
+
 
         data['body'] = musub(data['body'],rlis)
         self.send (data)
@@ -692,19 +707,22 @@ class User(model):
 
 
 
-    def sode (self,w):
-        if type(w)==str:
-            if len(w.split('.')) == 1: m = w
-            elif len(w.split('.')) == 2:
-                m=w.split('.')[0]
-                self.mode2 =  w.split('.')[1]
-            w = Feedback.objects.get(name=m)
+    def sode (self,mode):
+        if type(mode)==str:
+            _argv = re.findall(r"\.(.+)",mode)
+            if len(_argv) == 0: 
+                name = mode
+            elif len(_argv) >= 2:
+                name=mode.split('.')[0]
+                self.mode2 =  _argv[0]
+                self.mode_argv =  _argv
+            mode = Feedback.objects.get(name=name)
 
-        else: w = w
-
-        self.mode  = w
-        self.node  = w.name
-        self.nmod = self.mode.bmods
+        else: mode = mode
+        mode.sync()
+        self.mode  = mode
+        self.node  = mode.name
+        self.nmod = self.mode.get_next_modes()
         self.do = True
         self.Save()
 
@@ -748,8 +766,17 @@ class User(model):
         
 
     def Back(self):
-        self.mode ,self.lmod = self.lmod ,self.mode
+        
+        do = self.do 
+        try : 
+            mo = Feedback.objects.get (name = self.mode.back_mode)
+        except : 
+            mo = self.lmod 
+            self.lmod = self.mode
+        
         try:
+            self.sode(mo)
+            self.do = do
             self.Save()
             return True
         except: return False
@@ -758,56 +785,69 @@ class User(model):
 
     def dodo (self):
 
-        nm = ''
-        try:
-            if self.lastmsg.body[0] != '/':
-                nm = 'main'
-            elif self.lastmsg.body[:2] == '//' :
-                if len(self.lastmsg.body[1:].split('.')) == 1: nm = self.lastmsg.body[1:].split('.')[0]
-                elif len(self.lastmsg.body[1:].split('.')) == 2: 
-                    nm = self.lastmsg.body[1:].split('.')[0]
-                    nm0 = self.lastmsg.body[1:]
-        except:
-            nm = 'main'
-        lmd = self.mode
-        self.lmod = lmd
+        if re.match ('move://.+',self.lastmsg.body) :
+            next_must_set =  str(re.findall ('move://(.+)',self.lastmsg.body)[0])
+            self.sode(next_must_set)
+            self.mode.sync()
 
-        self.sync()
-        self.mode.sync()
 
-        if type(self.nmod) == dict:
-            ddic = self.nmod
         else:
-            ddic = self.mode.nmd(self)
-
-        
-
-        try :
-            try: self.sode ( Feedback.objects.get(name=ddic[nm]) )
-            except: self.sode (ddic[ nm0 ])
-        except:
+            nm = ''
             try:
-                self.sode ( Feedback.objects.get(name=ddic['main']) )
-            except: ...
+
+                if self.lastmsg.body[0] != '/':
                 
-        self.mode.sync()
-        self.nmod = self.mode.get_next_modes()
+                    nm = 'main'
 
-        try: boofun = self.node[:2] == '//' or ddic[nm][:2] == '//' 
-        except : boofun = False
-        nfu = '//jan'
+                elif self.lastmsg.body[:2] == '//' :
 
-        if boofun :
+                    if len(self.lastmsg.body[1:].split('.')) == 1: 
+                        nm = self.lastmsg.body[1:].split('.')[0]
+                    elif len(self.lastmsg.body[1:].split('.')) == 2: 
+                        nm = self.lastmsg.body[1:].split('.')[0]
+                        nm0 = self.lastmsg.body[1:]
+            except:
+                nm = 'main'
+            lmd = self.mode
+            self.lmod = lmd
+
+            self.sync()
+            self.mode.sync()
+
+            if type(self.nmod) == dict:
+                ddic = self.nmod
+            else:
+                ddic = self.mode.nmd(self)
+
+
+
+            try :
+                try: self.sode ( Feedback.objects.get(name=ddic[nm]) )
+                except: self.sode (ddic[ nm0 ])
+            except:
+                try:
+                    self.sode ( Feedback.objects.get(name=ddic['main']) )
+                except: 
+                    self.nmod = self.mode.get_next_modes()
+
             
-            if self.node[:2] == '//':
-                nfu = self.node
-            elif ddic[nm][:2] == '//':
-                nfu = ddic[nm]
+            
+
+            try: boofun = self.node[:2] == '//' or ddic[nm][:2] == '//' 
+            except : boofun = False
+            nfu = '//jan'
+
+            if boofun :
+            
+                if self.node[:2] == '//':
+                    nfu = self.node
+                elif ddic[nm][:2] == '//':
+                    nfu = ddic[nm]
         
-            self.Fdo (lmd,F=nfu)
-            self.sode(lmd)
-            self.Save()
-            return False
+                self.Fdo (lmd,F=nfu)
+                self.sode(lmd)
+                self.Save()
+                return False
         
         self.Save()
         return True
@@ -1042,6 +1082,54 @@ class door (model):
 
 
 
+
+
+
+
+
+class Question(model):
+
+    class Meta:
+        verbose_name = 'سوال'
+        verbose_name_plural = 'سوال ها'
+
+    msg       =   dchar  (max_length=1 ,default='')
+    msg_save  =   dstr   (default='default' ,primary_key=True)
+    lesson    =   dclass ("Lesson" ,on_delete=protect)
+
+    def __str__(self):
+        return "%s: %s" %(str(self.lesson),self.text)
+
+
+
+    def Save (self):
+        msg_save = []
+        for q in self.msg :
+            msg_save.append(q.rid)
+        self.msg_save = jDump(msg_save)
+        self.msg = ''
+        self.save()
+        self.sync()
+        return self
+
+
+
+    def sync(self):
+        self.msg = []
+        for q in loads(self.msg_save):
+            self.msg.append(MSG.objects.get(rid=q))
+        self.msg_save = ''
+        return self
+
+
+
+
+
+
+
+
+
+
 class Dor(model,model2):
 
     class Meta:
@@ -1089,6 +1177,17 @@ class Dor(model,model2):
             if Dor.objects.get(**info)._try(): return False
         except:
             return Dor(**info).Save()
+    
+
+    def information_dump (self):
+        text = '''
+نام فراسنج:%s
+نام درس:%s
+مباحث:%s
+زمان شروع:%s
+زمان پایان:%s
+''' %(self.name ,self.lesson.name ,self.topic ,str(self.start) ,str(self.finish))
+    
 
 
 
@@ -1249,14 +1348,16 @@ class Feedback (model):
         verbose_name="بازخورد"
         verbose_name_plural="بازخورد ها"
 
-    TYPE        =  dchar('نوع',max_length=15,choices=[('دینامیک','dynamic'),('استاتیک','static')],default='static')
-    name        =  dchar('نام',max_length=25,primary_key=True)
-    msgid       =  dstr (default=None)              #for_save
-    bmodsa      =  dstr (default=None)              #for_save
-    F           =  dchar(max_length=100,default=None)
-    msg         =  dstr ()
-    bmods       =  dstr ()
+    TYPE        =  dchar ('نوع',max_length=15,choices=[('دینامیک','dynamic'),('استاتیک','static')],default='static')
+    name        =  dchar ('نام',max_length=25,primary_key=True)
+    msgid       =  dstr  (default=None)              #for_save
+    bmodsa      =  dstr  (default=None)              #for_save
+    F           =  dchar (max_length=100,default=None)
+    msg         =  dstr  ()
+    bmods       =  dstr  ()
     CFormat     =  dchar ('ساخت',max_length=2,default='in',choices=[('in','ساخت سرور'),('db','از طرف دیتابیس')])
+    back_mode   =  dstr  (default='None')
+
 
 
 
@@ -1419,45 +1520,6 @@ class script(model):
 
 
 
-
-
-
-
-
-
-class Question(model):
-
-    class Meta:
-        verbose_name = 'سوال'
-        verbose_name_plural = 'سوال ها'
-
-    msg       =   dchar  (max_length=1 ,default='')
-    msg_save  =   dstr   (default='default' ,primary_key=True)
-    lesson    =   dclass ("Lesson" ,on_delete=protect)
-
-    def __str__(self):
-        return "%s: %s" %(str(self.lesson),self.text)
-
-
-
-    def Save (self):
-        msg_save = []
-        for q in self.msg :
-            msg_save.append(q.rid)
-        self.msg_save = jDump(msg_save)
-        self.msg = ''
-        self.save()
-        self.sync()
-        return self
-
-
-
-    def sync(self):
-        self.msg = []
-        for q in loads(self.msg_save):
-            self.msg.append(MSG.objects.get(rid=q))
-        self.msg_save = ''
-        return self
 
 
 

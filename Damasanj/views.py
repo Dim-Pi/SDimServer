@@ -253,7 +253,7 @@ class admviews :
 
 
 
-    adm_add_dor1 = Feedback( name='adm_add_dor1'  ,bmods={'main':'adm_add_dor2'}
+    adm_add_dor1 = Feedback( name='adm_add_dor1'  ,bmods={'main':'adm_add_dor_time0'}
                             ,msg={
                                 0:MSG.new(Type='TEXT' ,body='''خب حالا مبحث فراسنجمون رو برام بفرست زحمتت!(اگه چندتا مبحثه بینشون "و" بزار)'''
                                 ,keyb=[[{'command':'[auto]','text':'فعلا عجله ای نیست باشه بعدا'}],[{'command':'[back]','text':' ولش کن کلا '}]]).Save()
@@ -261,14 +261,23 @@ class admviews :
 
 
 
+    adm_add_dor_time0 = Feedback( name='adm_add_dor_time0'  ,bmods={'main':'adm_add_dor_time1'}
+                            ,msg={
+                                0:MSG.new(Type='TEXT' ,body='''خیله خب حالا وقتشه زمان شروع فراسنجت رو معلوم کنی''')
+                            })
 
-    adm_add_dor2 = Feedback( name='adm_add_dor2'  ,bmods={'main':'//jan','/True':'adm_learn_add_question0','/False':'adm_add_question0'}
+
+
+    adm_add_dor3 = Feedback( name='adm_add_dor3'  ,bmods={'main':'//jan','/True':'adm_learn_add_question0','/False':'adm_add_question0'}
                             ,msg = {
                                 0: MSG(Type='TEXT' ,body="خیله خب حالا رسیدیم به بخش اصلی کار یعنی اضافه کردن سوال به <farasanj.name>"  ).Save() , #last_end_______________________________
                                 1: MSG(Type='TEXT' ,body=" خب اگه اینکارو بلدی که هیچی اگرنه از گزینه [بلد نیستم] استفاده کن!"
-                                ,keyb=[[{'command':'//False','text':'نه بابا بلدم!'}],[{'command':'//True','text':'[بلد نیستم]'}]] ).Save()
+                                ,keyb=[[{'command':'//False','text':'[بلد هستم]'}],[{'command':'//True','text':'[بلد نیستم]'}]] ).Save()
                                  }).Save()
 
+
+
+    adm_add_question0 = Feedback( name="adm_add_question0"  ,bmods={''})
 
 
 
@@ -284,6 +293,7 @@ def keyv (key,fname,e):
         2: MSG.new(body=str(key),Type='TEXT').Save()
         }
     ).Save()
+
 
 
 
