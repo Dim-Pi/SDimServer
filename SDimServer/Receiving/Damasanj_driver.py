@@ -13,6 +13,7 @@ da.RETRY_DELAY = 2
 
 
 _allow_types = [
+    'start',
     'text',
     'file'
 ]
@@ -73,15 +74,13 @@ for msg in da.get_messages():
         while e == 1 and tt <= 10  :
             #break
             try :
-                fmsg = {'massenger':'soroush+',"massage":msg}
-                post_data = dumps(fmsg, separators=(',', ':'))
                 print ('http://127.0.0.1:8000/Damasanj/message/request/',msg)
                 r = post('http://127.0.0.1:8000/Damasanj/message/request/',post_data,headers=HEADER)
                 
                 sle = 0
                 
                 if r.status_code == 403 :
-                    bytes(b'','utf-8')
+                    raise 
                 
                 e = 0
                 tt = 0
