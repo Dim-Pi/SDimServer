@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     get_app_config("sender"),
-    get_app_config('resiever'),
+    get_app_config('reciever'),
 ]
 
 
